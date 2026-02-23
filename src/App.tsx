@@ -82,6 +82,7 @@ export default function App() {
       setLoading(false);
     } catch (err) {
       console.error("Fetch error:", err);
+      setLoading(false);
     }
   };
 
@@ -94,22 +95,30 @@ export default function App() {
   };
 
   const connectWebSocket = () => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${protocol}//${window.location.host}`);
-    
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'STATS_UPDATED') {
-        fetchData();
-        addNotification(`Stats updated for ${message.data.name}!`);
-      }
-    };
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const socket = new WebSocket(`${protocol}//${window.location.host}`);
+      
+      socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'STATS_UPDATED') {
+          fetchData();
+          addNotification(`Stats updated for ${message.data.name}!`);
+        }
+      };
 
-    socket.onclose = () => {
-      setTimeout(connectWebSocket, 3000);
-    };
+      socket.onerror = () => {
+        socket.close();
+      };
 
-    socketRef.current = socket;
+      socket.onclose = () => {
+        setTimeout(connectWebSocket, 10000);
+      };
+
+      socketRef.current = socket;
+    } catch (err) {
+      console.error('WebSocket connection failed:', err);
+    }
   };
 
   if (loading) return (
