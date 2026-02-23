@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
 import type { Player, TeamStandings, Game } from './types';
+import { seedPlayers, seedTeams, seedGames } from './data/seedData';
 
 // --- Components ---
 import FieldMap from './components/FieldMap';
@@ -82,6 +83,16 @@ export default function App() {
       setLoading(false);
     } catch (err) {
       console.error("Fetch error:", err);
+      // Use fallback seed data when API is unavailable (e.g. static hosting)
+      const filteredPlayers = seedPlayers.filter(p => {
+        const team = seedTeams.find(t => t.name === p.team_name);
+        return team ? team.type === tournamentType : true;
+      });
+      const filteredTeams = seedTeams.filter(t => t.type === tournamentType);
+      const filteredGames = seedGames.filter(g => g.type === tournamentType);
+      setPlayers(filteredPlayers);
+      setTeams(filteredTeams);
+      setGames(filteredGames);
       setLoading(false);
     }
   };
