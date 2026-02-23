@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@layer base {
+  img, video {
+    max-width: none;
+  }
+}
+
+@theme {
+  --color-yellow-50: #ff0000;
+  --color-yellow-100: #ff0000;
+  --color-yellow-200: #ff0000;
+  --color-yellow-300: #ff0000;
+  --color-yellow-400: #f6d806;
+  --color-yellow-500: #f6d806;
+  --color-yellow-600: #f6d806;
+  --color-yellow-700: #ff0000;
+  --color-yellow-800: #ff0000;
+  --color-yellow-900: #ff0000;
+  --color-yellow-950: #ff0000;
+}

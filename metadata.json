@@ -1,0 +1,7 @@
+{
+  "name": "Remix: Dtached App",
+  "description": "Real-time tournament registration, live player stats, digital cards, and premium media access.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
