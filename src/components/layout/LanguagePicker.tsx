@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Globe } from 'lucide-react';
 import { useLanguage } from '../../lib/LanguageContext';
 import { cn } from '../../lib/utils';
 
@@ -23,7 +22,7 @@ export default function LanguagePicker() {
           className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full mx-4 text-center space-y-6"
         >
           <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto">
-            <Globe className="w-8 h-8 text-yellow-500" />
+            <span className="text-3xl">🥷</span>
           </div>
           <div>
             <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">{t('lang.title')}</h2>
