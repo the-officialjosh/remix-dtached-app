@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
-import type { Player } from '../types';
+import { cn } from '../../lib/utils';
+import type { Player } from '../../types';
 
 const PlayerCard = ({ player, onClick }: { player: Player; onClick: () => void }) => (
   <motion.div

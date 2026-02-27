@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Shield } from 'lucide-react';
-import type { Player } from '../types';
+import type { Player } from '../../types';
 
 const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: Player[] }) => {
   const [requests, setRequests] = useState<any[]>([]);

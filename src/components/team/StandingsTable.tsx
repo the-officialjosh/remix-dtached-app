@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, ChevronRight } from 'lucide-react';
-import { cn } from '../lib/utils';
-import type { TeamStandings } from '../types';
+import { cn } from '../../lib/utils';
+import type { TeamStandings } from '../../types';
 
 const StandingsTable = ({ teams, title, onTeamClick }: { teams: TeamStandings[]; title: string; onTeamClick: (t: TeamStandings) => void; key?: React.Key }) => {
   const [sortConfig, setSortConfig] = useState<{ key: keyof TeamStandings; direction: 'asc' | 'desc' }>({ key: 'pts', direction: 'desc' });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Save, Shield, Edit2 } from 'lucide-react';
-import type { Player, TeamStandings } from '../types';
+import type { Player, TeamStandings } from '../../types';
 
 const PlayerManagement = ({ players, teams, onUpdate }: { players: Player[]; teams: TeamStandings[]; onUpdate: () => void }) => {
   const [editingPlayer, setEditingPlayer] = useState<Partial<Player> | null>(null);

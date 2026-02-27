@@ -1,4 +1,4 @@
-import { cn } from '../lib/utils';
+import { cn } from '../../lib/utils';
 
 const FieldMap = ({ activeField, tournamentType }: { activeField?: string; tournamentType: '7v7' | 'Flag' }) => {
   const fields = tournamentType === '7v7' 

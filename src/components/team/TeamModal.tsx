@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
-import type { TeamStandings, Player, Media } from '../types';
+import { cn } from '../../lib/utils';
+import type { TeamStandings, Player, Media } from '../../types';
 
 const TeamModal = ({ team, onClose, onPlayerClick }: { team: TeamStandings; onClose: () => void; onPlayerClick: (p: Player) => void }) => {
   const [media, setMedia] = useState<Media[]>([]);

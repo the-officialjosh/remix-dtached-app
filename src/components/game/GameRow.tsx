@@ -1,6 +1,6 @@
 import React from 'react';
-import { cn } from '../lib/utils';
-import type { Game } from '../types';
+import { cn } from '../../lib/utils';
+import type { Game } from '../../types';
 
 const GameRow = ({ game }: { game: Game; key?: React.Key }) => (
   <div className="p-6 border-b border-zinc-800 last:border-0 hover:bg-zinc-800/30 transition-colors">

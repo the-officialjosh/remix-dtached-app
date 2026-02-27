@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Save, Edit2 } from 'lucide-react';
-import type { TeamStandings } from '../types';
+import type { TeamStandings } from '../../types';
 
 const TeamManagement = ({ teams, onUpdate }: { teams: TeamStandings[]; onUpdate: () => void }) => {
   const [editingTeam, setEditingTeam] = useState<Partial<TeamStandings> | null>(null);

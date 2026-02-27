@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Image as ImageIcon, Lock, Zap, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
-import { cn } from '../lib/utils';
-import type { Player, Media } from '../types';
+import { cn } from '../../lib/utils';
+import type { Player, Media } from '../../types';
 
 const PlayerProfileModal = ({ player, onClose, isPremium, onUnlock }: { player: Player; onClose: () => void; isPremium: boolean; onUnlock: () => void }) => {
   const [media, setMedia] = useState<Media[]>([]);

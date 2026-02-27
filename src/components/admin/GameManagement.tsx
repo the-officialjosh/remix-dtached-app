@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Save, Edit2 } from 'lucide-react';
-import { cn } from '../lib/utils';
-import type { TeamStandings, Game } from '../types';
+import { cn } from '../../lib/utils';
+import type { TeamStandings, Game } from '../../types';
 
 const GameManagement = ({ teams, games, onUpdate }: { teams: TeamStandings[]; games: Game[]; onUpdate: () => void }) => {
   const [editingGame, setEditingGame] = useState<Partial<Game> | null>(null);
