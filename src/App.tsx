@@ -7,6 +7,9 @@ import { useWebSocket } from './hooks/useWebSocket';
 // --- Layout ---
 import Header from './components/layout/Header';
 import MobileNav from './components/layout/MobileNav';
+import Footer from './components/layout/Footer';
+import LanguagePicker from './components/layout/LanguagePicker';
+import { LanguageProvider } from './lib/LanguageContext';
 
 // --- Pages ---
 import LeaderboardPage from './components/pages/LeaderboardPage';
@@ -78,7 +81,9 @@ export default function App() {
   );
 
   return (
+    <LanguageProvider>
     <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-yellow-500 selection:text-black">
+      <LanguagePicker />
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -143,7 +148,6 @@ export default function App() {
           {activeTab === 'register' && (
             <motion.div key={`register-${initialEventType || 'none'}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <PlayerRegistration
-                key={initialEventType || 'default'}
                 initialEventType={initialEventType}
                 onComplete={() => {
                   setActiveTab('stats');
@@ -173,6 +177,7 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+      <Footer />
 
       <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
@@ -223,5 +228,6 @@ export default function App() {
         </AnimatePresence>
       </div>
     </div>
+    </LanguageProvider>
   );
 }

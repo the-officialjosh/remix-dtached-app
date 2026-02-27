@@ -2,6 +2,7 @@ import React from 'react';
 import { Trophy, Zap, Shield, Star, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { useLanguage } from '../../lib/LanguageContext';
 import type { Player, TeamStandings } from '../../types';
 
 interface LeaderboardPageProps {
@@ -16,17 +17,18 @@ interface LeaderboardPageProps {
 export default function LeaderboardPage({
   players, teams, expandedCategories, toggleCategory, onPlayerClick, onTeamClick
 }: LeaderboardPageProps) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-16">
       {/* Hero Section: Category Leaders */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'Passing Yds', key: 'total_pass_yards', icon: Zap, color: 'text-blue-400' },
-          { label: 'Receiving Yds', key: 'total_yards', icon: Zap, color: 'text-yellow-400' },
-          { label: 'Touchdowns', key: 'total_touchdowns', icon: Trophy, color: 'text-amber-400' },
-          { label: 'Receptions', key: 'total_catches', icon: Star, color: 'text-pink-400' },
-          { label: 'Interceptions', key: 'total_interceptions', icon: Shield, color: 'text-purple-400' },
-          { label: 'Sacks', key: 'total_sacks', icon: Zap, color: 'text-red-400' },
+          { label: t('leaderboard.passing'), key: 'total_pass_yards', icon: Zap, color: 'text-blue-400' },
+          { label: t('leaderboard.receiving'), key: 'total_yards', icon: Zap, color: 'text-yellow-400' },
+          { label: t('leaderboard.touchdowns'), key: 'total_touchdowns', icon: Trophy, color: 'text-amber-400' },
+          { label: t('leaderboard.receptions'), key: 'total_catches', icon: Star, color: 'text-pink-400' },
+          { label: t('leaderboard.interceptions'), key: 'total_interceptions', icon: Shield, color: 'text-purple-400' },
+          { label: t('leaderboard.sacks'), key: 'total_sacks', icon: Zap, color: 'text-red-400' },
         ].map((cat) => {
           const leader = [...players].sort((a, b) => (b[cat.key as keyof Player] as number || 0) - (a[cat.key as keyof Player] as number || 0))[0];
           return (
@@ -50,7 +52,7 @@ export default function LeaderboardPage({
                   </div>
                 </div>
               ) : (
-                <p className="text-zinc-600 italic text-[8px]">No data</p>
+                <p className="text-zinc-600 italic text-[8px]">{t('leaderboard.no_data')}</p>
               )}
             </div>
           );
@@ -60,13 +62,13 @@ export default function LeaderboardPage({
       {/* Categorized Leaderboard Sections */}
       <div className="space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">Stat Leaders</h2>
+          <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">{t('leaderboard.stat_leaders')}</h2>
           <div className="flex gap-2">
             <div className="px-4 py-2 bg-zinc-900 rounded-full border border-zinc-800 flex items-center gap-2">
               <Search className="w-4 h-4 text-zinc-500" />
               <input 
                 type="text" 
-                placeholder="Search athletes..." 
+                placeholder={t('leaderboard.search')} 
                 className="bg-transparent border-none outline-none text-xs text-white w-32 md:w-48" 
               />
             </div>
@@ -75,12 +77,12 @@ export default function LeaderboardPage({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {[
-            { title: 'Passing Leaders', key: 'total_pass_yards', icon: Zap, isQB: true },
-            { title: 'Receiving Leaders', key: 'total_yards', icon: Zap },
-            { title: 'Touchdown Leaders', key: 'total_touchdowns', icon: Trophy },
-            { title: 'Reception Leaders', key: 'total_catches', icon: Star },
-            { title: 'Interception Leaders', key: 'total_interceptions', icon: Shield },
-            { title: 'Sacks Leaders', key: 'total_sacks', icon: Zap },
+            { title: t('leaderboard.passing_leaders'), key: 'total_pass_yards', icon: Zap, isQB: true },
+            { title: t('leaderboard.receiving_leaders'), key: 'total_yards', icon: Zap },
+            { title: t('leaderboard.touchdown_leaders'), key: 'total_touchdowns', icon: Trophy },
+            { title: t('leaderboard.reception_leaders'), key: 'total_catches', icon: Star },
+            { title: t('leaderboard.interception_leaders'), key: 'total_interceptions', icon: Shield },
+            { title: t('leaderboard.sacks_leaders'), key: 'total_sacks', icon: Zap },
           ].map((category) => {
             const isExpanded = expandedCategories[category.key];
             const displayedPlayers = [...players]
@@ -98,7 +100,7 @@ export default function LeaderboardPage({
                     onClick={() => toggleCategory(category.key)}
                     className="text-[10px] font-black text-yellow-500 uppercase tracking-[0.2em] hover:text-yellow-400 transition-colors"
                   >
-                    {isExpanded ? 'Show Less' : 'View All'}
+                    {isExpanded ? t('leaderboard.show_less') : t('leaderboard.view_all')}
                   </button>
                 </div>
                 <div className="divide-y divide-zinc-800">
@@ -148,8 +150,8 @@ export default function LeaderboardPage({
       {/* Team Rankings / Seeds */}
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-          <h3 className="text-sm font-bold text-white uppercase tracking-widest">Team Rankings & Seeds</h3>
-          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Sorted by Points & Differential</span>
+          <h3 className="text-sm font-bold text-white uppercase tracking-widest">{t('leaderboard.team_rankings')}</h3>
+          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{t('leaderboard.sorted_by')}</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...teams]
@@ -186,15 +188,15 @@ export default function LeaderboardPage({
 
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-zinc-800/50 p-3 rounded-xl border border-zinc-700/50 text-center">
-                    <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Record</p>
+                    <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">{t('leaderboard.record')}</p>
                     <p className="text-sm font-mono text-white font-bold">{team.wins}-{team.losses}</p>
                   </div>
                   <div className="bg-zinc-800/50 p-3 rounded-xl border border-zinc-700/50 text-center">
-                    <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">PTS</p>
+                    <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">{t('leaderboard.pts')}</p>
                     <p className="text-sm font-mono text-yellow-400 font-bold">{team.pf}</p>
                   </div>
                   <div className="bg-zinc-800/50 p-3 rounded-xl border border-zinc-700/50 text-center">
-                    <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Allowed</p>
+                    <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">{t('leaderboard.allowed')}</p>
                     <p className="text-sm font-mono text-red-400 font-bold">{team.pa}</p>
                   </div>
                 </div>

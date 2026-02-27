@@ -2,8 +2,10 @@ import React, { useState, useRef } from 'react';
 import { Camera, Shield, Play, Trophy, Tent } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { useLanguage } from '../../lib/LanguageContext';
 
 const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () => void; initialEventType?: 'camp' | 'tournament' }) => {
+  const { t } = useLanguage();
   const [step, setStep] = useState(initialEventType ? 2 : 1);
   const [formData, setFormData] = useState({
     event_type: (initialEventType || '') as '' | 'camp' | 'tournament',
@@ -68,8 +70,8 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
         {step === 1 && (
           <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
             <div className="text-center">
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">Select Event</h2>
-              <p className="text-zinc-500">What are you registering for?</p>
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">{t('reg.select_event')}</h2>
+              <p className="text-zinc-500">{t('reg.select_subtitle')}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <button type="button" onClick={() => setFormData({...formData, event_type: 'camp'})} className={cn("relative overflow-hidden rounded-3xl border-2 transition-all aspect-[4/3] group", formData.event_type === 'camp' ? "border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.25)]" : "border-zinc-800 hover:border-zinc-600")}>
@@ -89,23 +91,23 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
                 {formData.event_type === 'tournament' && <div className="absolute top-4 right-4 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center"><svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></div>}
               </button>
             </div>
-            <button onClick={() => setStep(2)} disabled={!formData.event_type} className={cn("w-full py-4 font-black uppercase tracking-widest rounded-2xl transition-all", formData.event_type ? "bg-yellow-500 text-black hover:bg-yellow-400" : "bg-zinc-800 text-zinc-600 cursor-not-allowed")}>Next Step</button>
+            <button onClick={() => setStep(2)} disabled={!formData.event_type} className={cn("w-full py-4 font-black uppercase tracking-widest rounded-2xl transition-all", formData.event_type ? "bg-yellow-500 text-black hover:bg-yellow-400" : "bg-zinc-800 text-zinc-600 cursor-not-allowed")}>{t('reg.next_step')}</button>
           </motion.div>
         )}
 
         {step === 3 && (
           <motion.div key="step-photos" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
             <div className="text-center">
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">Upload Photos</h2>
-              <p className="text-zinc-500">Add your photos for your official player card.</p>
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">{t('reg.photos_title')}</h2>
+              <p className="text-zinc-500">{t('reg.photos_subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Profile Photo (1:1) */}
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-bold text-white">Profile Photo <span className="text-zinc-500 font-normal">(1:1 – Square)</span></p>
-                  <p className="text-[10px] text-zinc-500 mt-1">Upload a clear photo for your player card. Face visible if possible. Min 1000 × 1000 px.</p>
+                  <p className="text-sm font-bold text-white">{t('reg.profile_photo')} <span className="text-zinc-500 font-normal">({t('reg.profile_photo_ratio')})</span></p>
+                  <p className="text-[10px] text-zinc-500 mt-1">{t('reg.profile_photo_desc')}</p>
                 </div>
                 <div
                   onClick={() => profilePhotoRef.current?.click()}
@@ -132,7 +134,7 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
                   ) : (
                     <div className="text-center space-y-2">
                       <Camera className="w-8 h-8 text-zinc-600 mx-auto" />
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Tap to upload</p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{t('reg.tap_upload')}</p>
                     </div>
                   )}
                 </div>
@@ -141,8 +143,8 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
               {/* Player Photo (9:16) */}
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-bold text-white">Player Photo <span className="text-zinc-500 font-normal">(4:5 – Vertical)</span></p>
-                  <p className="text-[10px] text-zinc-500 mt-1">Upload a vertical photo for your player card. Action photo if you have one (optional).</p>
+                  <p className="text-sm font-bold text-white">{t('reg.player_photo')} <span className="text-zinc-500 font-normal">({t('reg.player_photo_ratio')})</span></p>
+                  <p className="text-[10px] text-zinc-500 mt-1">{t('reg.player_photo_desc')}</p>
                 </div>
                 <div
                   onClick={() => playerPhotoRef.current?.click()}
@@ -169,7 +171,7 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
                   ) : (
                     <div className="text-center space-y-2">
                       <Camera className="w-8 h-8 text-zinc-600 mx-auto" />
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Tap to upload</p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{t('reg.tap_upload')}</p>
                     </div>
                   )}
                 </div>
@@ -177,8 +179,8 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(2)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
-              <button onClick={() => setStep(formData.event_type === 'camp' ? 5 : 4)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Next Step</button>
+              <button onClick={() => setStep(2)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">{t('reg.back')}</button>
+              <button onClick={() => setStep(formData.event_type === 'camp' ? 5 : 4)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">{t('reg.next_step')}</button>
             </div>
           </motion.div>
         )}
@@ -187,22 +189,24 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
             <div className="text-center">
               <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">
-                {formData.event_type === 'camp' ? "Camp Retour à L'Origine" : formData.event_type === 'tournament' ? 'Tournoi Dtached' : 'Player Registration'}
+                {formData.event_type === 'camp' ? t('reg.camp_title') : formData.event_type === 'tournament' ? t('reg.tournament_title') : t('reg.player_title')}
               </h2>
-              <p className="text-zinc-500">Create your official Dtached player profile.</p>
+              <p className="text-zinc-500">
+                {formData.event_type === 'camp' ? t('reg.camp_subtitle') : t('reg.tournament_subtitle')}
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input placeholder="First Name" className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.first_name || ''} onChange={e => setFormData({...formData, first_name: e.target.value})} />
-              <input placeholder="Middle Name" className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.middle_name || ''} onChange={e => setFormData({...formData, middle_name: e.target.value})} />
-              <input placeholder="Last Name" className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.last_name || ''} onChange={e => setFormData({...formData, last_name: e.target.value})} />
-              <input type={formData.dob ? 'date' : 'text'} placeholder="Date of Birth" onFocus={e => { e.target.type = 'date'; }} onBlur={e => { if (!e.target.value) e.target.type = 'text'; }} className={cn("bg-zinc-900 border border-zinc-800 p-4 rounded-2xl", formData.dob ? "text-white" : "text-zinc-500")} value={formData.dob || ''} onChange={e => setFormData({...formData, dob: e.target.value})} />
+              <input placeholder={t('reg.first_name')} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.first_name || ''} onChange={e => setFormData({...formData, first_name: e.target.value})} />
+              <input placeholder={t('reg.middle_name')} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.middle_name || ''} onChange={e => setFormData({...formData, middle_name: e.target.value})} />
+              <input placeholder={t('reg.last_name')} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.last_name || ''} onChange={e => setFormData({...formData, last_name: e.target.value})} />
+              <input type={formData.dob ? 'date' : 'text'} placeholder={t('reg.dob')} onFocus={e => { e.target.type = 'date'; }} onBlur={e => { if (!e.target.value) e.target.type = 'text'; }} className={cn("bg-zinc-900 border border-zinc-800 p-4 rounded-2xl", formData.dob ? "text-white" : "text-zinc-500")} value={formData.dob || ''} onChange={e => setFormData({...formData, dob: e.target.value})} />
               <select className={cn("bg-zinc-900 border border-zinc-800 p-4 rounded-2xl", formData.gender ? "text-white" : "text-zinc-500")} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-                <option value="" disabled>Gender</option>
-                <option value="Boy">Boy</option>
-                <option value="Girl">Girl</option>
+                <option value="" disabled>{t('reg.gender.select')}</option>
+                <option value="Boy">{t('reg.gender.male')}</option>
+                <option value="Girl">{t('reg.gender.female')}</option>
               </select>
               <select className={cn("bg-zinc-900 border border-zinc-800 p-4 rounded-2xl", formData.position ? "text-white" : "text-zinc-500")} value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})}>
-                <option value="" disabled>Position</option>
+                <option value="" disabled>{t('reg.position.select')}</option>
                 <option value="QB">QB</option>
                 <option value="WR">WR</option>
                 <option value="RB">RB</option>
@@ -243,17 +247,17 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
                   </select>
                 </>
               )}
-              <input placeholder="City" className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.city || ''} onChange={e => setFormData({...formData, city: e.target.value})} />
-              <input placeholder="Province/State" className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.province_state || ''} onChange={e => setFormData({...formData, province_state: e.target.value})} />
+              <input placeholder={t('reg.city')} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.city || ''} onChange={e => setFormData({...formData, city: e.target.value})} />
+              <input placeholder={t('reg.province')} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.province_state || ''} onChange={e => setFormData({...formData, province_state: e.target.value})} />
               {formData.event_type === 'tournament' && (
                 <input type="number" placeholder="Jersey Number" className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.number || ''} onChange={e => setFormData({...formData, number: e.target.value})} />
               )}
-              <input placeholder="Current Football Program / Team Name" className={cn("bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white", formData.event_type === 'camp' && "md:col-span-2")} value={formData.current_program || ''} onChange={e => setFormData({...formData, current_program: e.target.value})} />
+              <input placeholder={t('reg.current_program')} className={cn("bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white", formData.event_type === 'camp' && "md:col-span-2")} value={formData.current_program || ''} onChange={e => setFormData({...formData, current_program: e.target.value})} />
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(1)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
-              <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Next Step</button>
+              <button onClick={() => setStep(1)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">{t('reg.back')}</button>
+              <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">{t('reg.next_step')}</button>
             </div>
           </motion.div>
         )}
@@ -261,24 +265,24 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
         {step === 4 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
             <div className="text-center">
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">Team Information</h2>
-              <p className="text-zinc-500">Are you already part of a team?</p>
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">{t('reg.team_title')}</h2>
+              <p className="text-zinc-500">{t('reg.team_subtitle')}</p>
             </div>
             <div className="flex gap-4">
               <button onClick={() => setFormData({...formData, has_team: true})} className={cn("flex-1 p-6 rounded-3xl border-2 transition-all", formData.has_team ? "border-yellow-500 bg-yellow-500/10" : "border-zinc-800 bg-zinc-900")}>
-                <p className="text-xl font-bold text-white">Yes, I have a team</p>
+                <p className="text-xl font-bold text-white">{t('reg.has_team')}</p>
               </button>
               <button onClick={() => setFormData({...formData, has_team: false})} className={cn("flex-1 p-6 rounded-3xl border-2 transition-all", !formData.has_team ? "border-yellow-500 bg-yellow-500/10" : "border-zinc-800 bg-zinc-900")}>
-                <p className="text-xl font-bold text-white">No, I'm a free agent</p>
+                <p className="text-xl font-bold text-white">{t('reg.free_agent')}</p>
               </button>
             </div>
 
             {formData.has_team && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input placeholder="Team Name" className="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.team_name} onChange={e => setFormData({...formData, team_name: e.target.value})} />
+                <input placeholder={t('reg.team_name')} className="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl text-white" value={formData.team_name} onChange={e => setFormData({...formData, team_name: e.target.value})} />
                 <div>
                   <select className={cn("w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl", formData.category ? "text-white" : "text-zinc-500")} value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                    <option value="" disabled>Category / Division</option>
+                    <option value="" disabled>{t('reg.category.select')}</option>
                     <option value="Elite">Elite</option>
                     <option value="16U">16U</option>
                     <option value="14U">14U</option>
@@ -292,7 +296,7 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
                 {/* Category dropdown — same as "has team" path */}
                 <div>
                   <select className={cn("w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl", formData.category ? "text-white" : "text-zinc-500")} value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                    <option value="" disabled>Category / Division</option>
+                    <option value="" disabled>{t('reg.category.select')}</option>
                     <option value="Elite">Elite</option>
                     <option value="16U">16U</option>
                     <option value="14U">14U</option>
@@ -382,8 +386,8 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
             )}
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(3)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
-              <button onClick={() => setStep(5)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Next Step</button>
+              <button onClick={() => setStep(3)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">{t('reg.back')}</button>
+              <button onClick={() => setStep(5)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">{t('reg.next_step')}</button>
             </div>
           </motion.div>
         )}
@@ -391,8 +395,8 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
         {step === 5 && (
           <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
             <div className="text-center">
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">Pick a Plan</h2>
-              <p className="text-zinc-500">Select your registration package to continue.</p>
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">{t('reg.plan_title')}</h2>
+              <p className="text-zinc-500">{t('reg.plan_subtitle')}</p>
             </div>
 
             {formData.event_type === 'camp' ? (
@@ -486,8 +490,8 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
               </>
             )}
             <div className="flex gap-4">
-              <button onClick={() => setStep(formData.event_type === 'camp' ? 3 : 4)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
-              <button onClick={handleRegister} disabled={!formData.plan_package} className={cn("flex-[2] py-4 font-black uppercase tracking-widest rounded-2xl transition-all", formData.plan_package ? "bg-yellow-500 text-black hover:bg-yellow-400" : "bg-zinc-800 text-zinc-600 cursor-not-allowed")}>Submit Registration</button>
+              <button onClick={() => setStep(formData.event_type === 'camp' ? 3 : 4)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">{t('reg.back')}</button>
+              <button onClick={handleRegister} disabled={!formData.plan_package} className={cn("flex-[2] py-4 font-black uppercase tracking-widest rounded-2xl transition-all", formData.plan_package ? "bg-yellow-500 text-black hover:bg-yellow-400" : "bg-zinc-800 text-zinc-600 cursor-not-allowed")}>{t('reg.submit')}</button>
             </div>
           </motion.div>
         )}
@@ -502,8 +506,8 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
               </div>
             </div>
             <div>
-              <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">Biometric Verification</h2>
-              <p className="text-zinc-500">Scanning face and ID for official Dtached certification...</p>
+              <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">{t('reg.verifying_title')}</h2>
+              <p className="text-zinc-500">{t('reg.verifying_subtitle')}</p>
             </div>
             <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
               <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 3 }} className="bg-yellow-500 h-full" />
@@ -517,10 +521,10 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
               <Shield className="w-12 h-12 text-black" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">Verified Successfully!</h2>
-              <p className="text-zinc-500">Your Dtached Player Card is now active. {formData.has_team ? "Your coach has been notified to accept you into the roster." : "You are now listed as a verified free agent."}</p>
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">{t('reg.success_title')}</h2>
+              <p className="text-zinc-500">{t('reg.success_subtitle')}</p>
             </div>
-            <button onClick={onComplete} className="w-full py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Go to Profile</button>
+            <button onClick={onComplete} className="w-full py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">{t('reg.success_done')}</button>
           </motion.div>
         )}
       </AnimatePresence>
