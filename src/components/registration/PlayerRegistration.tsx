@@ -3,10 +3,10 @@ import { Camera, Shield, Play, Trophy, Tent } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 
-const PlayerRegistration = ({ onComplete }: { onComplete: () => void }) => {
-  const [step, setStep] = useState(1);
+const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () => void; initialEventType?: 'camp' | 'tournament' }) => {
+  const [step, setStep] = useState(initialEventType ? 2 : 1);
   const [formData, setFormData] = useState({
-    event_type: '' as '' | 'camp' | 'tournament',
+    event_type: (initialEventType || '') as '' | 'camp' | 'tournament',
     first_name: '', middle_name: '', last_name: '', dob: '', gender: '', height: '', weight: '', city: '', province_state: '', position: '', photo: '', player_photo: '',
     has_team: false, team_name: '', category: '', number: '', video_url: '', plan_package: '' as '' | '$45' | '$90' | '$100' | 'team_paid' | 'registration_paid',
     jersey_size: '', shorts_size: '', current_program: '',
@@ -93,7 +93,7 @@ const PlayerRegistration = ({ onComplete }: { onComplete: () => void }) => {
           </motion.div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <motion.div key="step-photos" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
             <div className="text-center">
               <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">Upload Photos</h2>
@@ -110,7 +110,7 @@ const PlayerRegistration = ({ onComplete }: { onComplete: () => void }) => {
                 <div
                   onClick={() => profilePhotoRef.current?.click()}
                   className={cn(
-                    "relative aspect-square rounded-2xl border-2 border-dashed cursor-pointer transition-all overflow-hidden flex items-center justify-center",
+                    "relative aspect-square rounded-full border-2 border-dashed cursor-pointer transition-all overflow-hidden flex items-center justify-center",
                     formData.photo ? "border-yellow-500/30 bg-yellow-500/5" : "border-zinc-700 bg-zinc-900 hover:border-zinc-600"
                   )}
                 >
@@ -141,13 +141,13 @@ const PlayerRegistration = ({ onComplete }: { onComplete: () => void }) => {
               {/* Player Photo (9:16) */}
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-bold text-white">Player Photo <span className="text-zinc-500 font-normal">(9:16 – Vertical)</span></p>
+                  <p className="text-sm font-bold text-white">Player Photo <span className="text-zinc-500 font-normal">(4:5 – Vertical)</span></p>
                   <p className="text-[10px] text-zinc-500 mt-1">Upload a vertical photo for your player card. Action photo if you have one (optional).</p>
                 </div>
                 <div
                   onClick={() => playerPhotoRef.current?.click()}
                   className={cn(
-                    "relative aspect-[9/16] rounded-2xl border-2 border-dashed cursor-pointer transition-all overflow-hidden flex items-center justify-center",
+                    "relative aspect-[4/5] rounded-2xl border-2 border-dashed cursor-pointer transition-all overflow-hidden flex items-center justify-center",
                     formData.player_photo ? "border-yellow-500/30 bg-yellow-500/5" : "border-zinc-700 bg-zinc-900 hover:border-zinc-600"
                   )}
                 >
@@ -177,16 +177,18 @@ const PlayerRegistration = ({ onComplete }: { onComplete: () => void }) => {
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(1)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
-              <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Next Step</button>
+              <button onClick={() => setStep(2)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
+              <button onClick={() => setStep(formData.event_type === 'camp' ? 5 : 4)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Next Step</button>
             </div>
           </motion.div>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
             <div className="text-center">
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">Player Registration</h2>
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">
+                {formData.event_type === 'camp' ? "Camp Retour à L'Origine" : formData.event_type === 'tournament' ? 'Tournoi Dtached' : 'Player Registration'}
+              </h2>
               <p className="text-zinc-500">Create your official Dtached player profile.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -250,8 +252,8 @@ const PlayerRegistration = ({ onComplete }: { onComplete: () => void }) => {
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(2)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
-              <button onClick={() => setStep(formData.event_type === 'camp' ? 5 : 4)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Next Step</button>
+              <button onClick={() => setStep(1)} className="flex-1 py-4 text-zinc-500 font-bold uppercase">Back</button>
+              <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-2xl hover:bg-yellow-400 transition-all">Next Step</button>
             </div>
           </motion.div>
         )}

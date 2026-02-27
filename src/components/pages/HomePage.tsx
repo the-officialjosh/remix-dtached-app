@@ -11,7 +11,7 @@ interface HomePageProps {
   toggleCategory: (key: string) => void;
   onPlayerClick: (player: Player) => void;
   onTeamClick: (team: TeamStandings) => void;
-  onRegister: () => void;
+  onRegister: (eventType?: 'camp' | 'tournament') => void;
 }
 
 export default function HomePage({
@@ -81,6 +81,60 @@ export default function HomePage({
       </div>
 
       <div className="space-y-16">
+
+      {/* Events Section */}
+      <div className="space-y-8">
+        <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">Events</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Camp Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="relative rounded-3xl overflow-hidden aspect-[4/3] group cursor-pointer"
+            onClick={() => onRegister('camp')}
+          >
+            <img src="/camp.png" alt="Camp Retour à l'Origine" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
+            <div className="relative h-full flex flex-col justify-between p-6">
+              <div>
+                <span className="inline-block bg-yellow-500 text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">June 20</span>
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter italic leading-tight">Camp Retour<br />à L'Origine</h3>
+                <p className="text-zinc-400 text-sm font-medium">5e Édition • Montréal</p>
+                <button className="px-6 py-3 bg-yellow-500 text-black font-black uppercase tracking-widest text-sm rounded-xl hover:bg-yellow-400 transition-all">
+                  Register
+                </button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Tournoi Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="relative rounded-3xl overflow-hidden aspect-[4/3] group cursor-pointer"
+            onClick={() => onRegister('tournament')}
+          >
+            <img src="/tournoi.png" alt="Tournoi Born 2 Cheer" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
+            <div className="relative h-full flex flex-col justify-between p-6">
+              <div>
+                <span className="inline-block bg-yellow-500 text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">June 20 - 21</span>
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter italic leading-tight">Tournoi<br />Dtached</h3>
+                <p className="text-zinc-400 text-sm font-medium">Montréal</p>
+                <button className="px-6 py-3 bg-yellow-500 text-black font-black uppercase tracking-widest text-sm rounded-xl hover:bg-yellow-400 transition-all">
+                  Register
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
 
       {/* Hero Section: Category Leaders */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

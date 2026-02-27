@@ -36,6 +36,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<{ id: number; msg: string }[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [initialEventType, setInitialEventType] = useState<'camp' | 'tournament' | undefined>(undefined);
 
   const toggleCategory = (key: string) => {
     setExpandedCategories(prev => ({ ...prev, [key]: !prev[key] }));
@@ -97,7 +98,10 @@ export default function App() {
                 toggleCategory={toggleCategory}
                 onPlayerClick={setSelectedPlayer}
                 onTeamClick={setSelectedTeam}
-                onRegister={() => setActiveTab('register')}
+                onRegister={(eventType) => {
+                  setInitialEventType(eventType);
+                  setActiveTab('register');
+                }}
               />
             </motion.div>
           )}
@@ -137,11 +141,16 @@ export default function App() {
           )}
 
           {activeTab === 'register' && (
-            <motion.div key="register" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <PlayerRegistration onComplete={() => {
-                setActiveTab('stats');
-                loadData();
-              }} />
+            <motion.div key={`register-${initialEventType || 'none'}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <PlayerRegistration
+                key={initialEventType || 'default'}
+                initialEventType={initialEventType}
+                onComplete={() => {
+                  setActiveTab('stats');
+                  setInitialEventType(undefined);
+                  loadData();
+                }}
+              />
             </motion.div>
           )}
 
