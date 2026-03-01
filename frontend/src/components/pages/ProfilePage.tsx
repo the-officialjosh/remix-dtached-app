@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../lib/AuthContext';
 import {
@@ -18,8 +18,11 @@ import { cn, formatRole } from '../../lib/utils';
 
 const POSITIONS = ['QB', 'WR', 'RB', 'TE', 'DB', 'LB', 'DL', 'OL', 'K', 'P', 'ATH'];
 
+const API = import.meta.env.VITE_API_URL || '/api';
+
 export default function ProfilePage() {
   const { user } = useAuth();
+  const token = localStorage.getItem('token');
 
   const [form, setForm] = useState({
     firstName: user?.firstName || '',
@@ -36,6 +39,40 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Load profile on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await fetch(`${API}/my/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setForm({
+            firstName: data.first_name || data.firstName || '',
+            lastName: data.last_name || data.lastName || '',
+            position: data.position || '',
+            height: data.height || '',
+            weight: data.weight || '',
+            city: data.city || '',
+            province: data.province || '',
+            jerseyNumber: data.jersey_number?.toString() || data.jerseyNumber?.toString() || '',
+            bio: data.bio || '',
+          });
+          if (data.photo_url || data.photoUrl) {
+            setPhotoPreview(data.photo_url || data.photoUrl);
+          }
+        }
+      } catch (err) {
+        // Silently fail — form already has defaults from user context
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, [token]);
 
   const update = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -55,10 +92,35 @@ export default function ProfilePage() {
     e.preventDefault();
     setError('');
     setSaving(true);
-    // TODO: POST to /api/my/profile when backend endpoint is ready
-    await new Promise((res) => setTimeout(res, 800));
-    setSaving(false);
-    setSaved(true);
+    try {
+      const res = await fetch(`${API}/my/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          position: form.position || null,
+          height: form.height || null,
+          weight: form.weight || null,
+          city: form.city || null,
+          province: form.province || null,
+          jerseyNumber: form.jerseyNumber ? parseInt(form.jerseyNumber) : null,
+          photoUrl: photoPreview || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Failed to save profile');
+      }
+      setSaved(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save profile');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

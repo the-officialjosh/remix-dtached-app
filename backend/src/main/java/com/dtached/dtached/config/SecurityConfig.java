@@ -58,6 +58,9 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.PUT, "/api/my/team/**").hasAnyRole("COACH", "TEAM_MANAGER")
                     .requestMatchers(HttpMethod.POST, "/api/players/confirm-jersey").hasAnyRole("COACH", "TEAM_MANAGER")
 
+                    // Staff endpoints
+                    .requestMatchers("/api/staff/**").hasAnyRole("ADMIN", "COACH", "TEAM_MANAGER")
+
                     // Swagger / OpenAPI
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
