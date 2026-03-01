@@ -11,10 +11,12 @@ import StaffPanel from '../admin/StaffPanel';
 import RequestApprovals from '../admin/RequestApprovals';
 import MatchApprovals from '../admin/MatchApprovals';
 import PlayerDirectory from '../admin/PlayerDirectory';
+import TransferQueue from '../admin/TransferQueue';
+import UsersManagement from '../admin/UsersManagement';
 import { Shield, ShieldAlert, Users, Trophy, UserCheck, Clock, Zap, Heart, ClipboardList, BookUser, Video, Briefcase } from 'lucide-react';
 import { API_URL as API } from '../../lib/api';
 
-type SubTab = 'teams' | 'players' | 'stats' | 'matchups' | 'requests' | 'matches' | 'directory' | 'needs' | 'staff';
+type SubTab = 'teams' | 'players' | 'stats' | 'matchups' | 'requests' | 'matches' | 'directory' | 'needs' | 'staff' | 'transfers' | 'users';
 
 interface AdminPageProps {
   adminSubTab: 'teams' | 'players' | 'stats' | 'matchups';
@@ -64,8 +66,10 @@ export default function AdminPage({
   const tabs: { key: SubTab; label: string; icon: any; adminOnly?: boolean }[] = [
     { key: 'teams', label: 'Teams', icon: Trophy },
     { key: 'requests', label: 'Requests', icon: ClipboardList, adminOnly: true },
+    { key: 'transfers', label: 'Transfers', icon: Briefcase, adminOnly: true },
     { key: 'matches', label: 'Matches', icon: Heart, adminOnly: true },
     { key: 'directory', label: 'Directory', icon: BookUser, adminOnly: true },
+    { key: 'users', label: 'Users', icon: Users, adminOnly: true },
     { key: 'players', label: 'Roster', icon: UserCheck },
     { key: 'stats', label: 'Stats', icon: Zap },
     { key: 'matchups', label: 'Games', icon: Shield },
@@ -124,6 +128,8 @@ export default function AdminPage({
         {currentTab === 'requests' && isAdmin && <RequestApprovals />}
         {currentTab === 'matches' && isAdmin && <MatchApprovals />}
         {currentTab === 'directory' && isAdmin && <PlayerDirectory />}
+        {currentTab === 'transfers' && isAdmin && <TransferQueue />}
+        {currentTab === 'users' && isAdmin && <UsersManagement />}
         {currentTab === 'staff' && <StaffPanel games={games} onUpdate={onUpdate} />}
 
         {(currentTab === 'teams' || currentTab === 'players' || currentTab === 'matchups') && (

@@ -142,4 +142,30 @@ public class PlayerService {
         player.setIsVerified(true);
         playerRepository.save(player);
     }
+
+    /**
+     * Toggle free agent visibility on the market.
+     * Only allowed if verified and not on a team.
+     */
+    @Transactional
+    public boolean toggleFreeAgentVisibility(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Player player = playerRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("No player profile found"));
+
+        if (!Boolean.TRUE.equals(player.getIsVerified())) {
+            throw new IllegalStateException("Must be verified to toggle market visibility");
+        }
+
+        if (player.getTeam() != null) {
+            throw new IllegalStateException("Cannot toggle free agent visibility while on a team");
+        }
+
+        boolean newState = !Boolean.TRUE.equals(player.getOpenToOffers());
+        player.setOpenToOffers(newState);
+        playerRepository.save(player);
+        return newState;
+    }
 }

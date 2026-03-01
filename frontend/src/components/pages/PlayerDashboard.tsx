@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Shield, Mail, CheckCircle, XCircle, Ticket } from 'lucide-react';
+import { Users, UserPlus, Shield, Mail, CheckCircle, XCircle, Ticket, Heart, Eye, EyeOff, AlertTriangle, Clock } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { API_URL as API } from '../../lib/api';
 
@@ -8,25 +8,33 @@ export default function PlayerDashboard() {
   const token = localStorage.getItem('token');
   const [player, setPlayer] = useState<any>(null);
   const [requests, setRequests] = useState<any[]>([]);
+  const [interests, setInterests] = useState<any[]>([]);
   const [inviteCode, setInviteCode] = useState('');
   const [joinMsg, setJoinMsg] = useState('');
   const [joinErr, setJoinErr] = useState('');
   const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
 
   const authHeaders = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
 
+  const loadPlayer = () =>
+    fetch(`${API}/players/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null);
+
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/players/me`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.ok ? r.json() : null),
+      loadPlayer(),
       fetch(`${API}/my/requests`, { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.ok ? r.json() : []),
-    ]).then(([p, reqs]) => {
+      fetch(`${API}/interests/my`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : []),
+    ]).then(([p, reqs, ints]) => {
       setPlayer(p);
       setRequests(reqs);
+      setInterests(ints);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [token]);
@@ -37,9 +45,8 @@ export default function PlayerDashboard() {
       headers: authHeaders,
     });
     setRequests(requests.filter(r => r.id !== id));
-    // Refresh player data
-    const p = await fetch(`${API}/players/me`, { headers: { Authorization: `Bearer ${token}` } });
-    if (p.ok) setPlayer(await p.json());
+    const p = await loadPlayer();
+    if (p) setPlayer(p);
   };
 
   const handleJoinByCode = async (e: React.FormEvent) => {
@@ -54,15 +61,27 @@ export default function PlayerDashboard() {
       if (res.ok) {
         setJoinMsg(data.message || 'Successfully joined team!');
         setInviteCode('');
-        // Refresh player
-        const p = await fetch(`${API}/players/me`, { headers: { Authorization: `Bearer ${token}` } });
-        if (p.ok) setPlayer(await p.json());
+        const p = await loadPlayer();
+        if (p) setPlayer(p);
       } else {
         setJoinErr(data.message || data.error || 'Invalid invite code');
       }
     } catch {
       setJoinErr('Failed to join team');
     }
+  };
+
+  const toggleFreeAgent = async () => {
+    setToggling(true);
+    try {
+      await fetch(`${API}/players/me/free-agent`, {
+        method: 'PUT',
+        headers: authHeaders,
+      });
+      const p = await loadPlayer();
+      if (p) setPlayer(p);
+    } catch { /* silently handle */ }
+    setToggling(false);
   };
 
   if (loading) {
@@ -83,8 +102,14 @@ export default function PlayerDashboard() {
     );
   }
 
+  const isFreeAgent = !(player.team_name || player.teamName);
+  const isVerified = player.is_verified || player.isVerified;
+  const isOpenToOffers = player.open_to_offers || player.openToOffers;
+  const matchedInterests = interests.filter(i => i.status === 'MATCHED');
+  const pendingInterests = interests.filter(i => i.status === 'PENDING');
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Player Info Card */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
         <div className="flex items-center gap-6">
@@ -99,11 +124,11 @@ export default function PlayerDashboard() {
             <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">
               {player.name || `${player.first_name || player.firstName} ${player.last_name || player.lastName}`}
             </h3>
-            <div className="flex items-center gap-3 mt-1">
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
               <span className="px-3 py-0.5 bg-yellow-500/10 text-yellow-500 rounded-full text-[10px] font-black uppercase">
                 {player.position}
               </span>
-              {player.team_name || player.teamName ? (
+              {!isFreeAgent ? (
                 <span className="text-xs text-zinc-400">
                   <Users className="w-3 h-3 inline mr-1" />
                   {player.team_name || player.teamName}
@@ -111,11 +136,15 @@ export default function PlayerDashboard() {
               ) : (
                 <span className="text-xs text-orange-400 font-bold uppercase">Free Agent</span>
               )}
-              {(player.is_verified || player.isVerified) && (
-                <span className="flex items-center gap-1 text-green-400 text-[10px] font-bold">
-                  <Shield className="w-3 h-3" /> Verified
-                </span>
-              )}
+              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                player.status === 'FREE_AGENT' ? 'bg-blue-500/10 text-blue-400' :
+                player.status === 'ON_TEAM' ? 'bg-green-500/10 text-green-400' :
+                player.status === 'PENDING_MATCH' ? 'bg-purple-500/10 text-purple-400' :
+                player.status === 'PENDING_JOIN' ? 'bg-orange-500/10 text-orange-400' :
+                'bg-zinc-500/10 text-zinc-400'
+              }`}>
+                {(player.status || '').replace(/_/g, ' ')}
+              </span>
             </div>
             <p className="text-xs text-zinc-500 mt-1">
               #{player.number || '—'} • {player.height || '—'} • {player.city}
@@ -124,8 +153,117 @@ export default function PlayerDashboard() {
         </div>
       </div>
 
+      {/* Verification Status Card */}
+      <div className={`rounded-3xl p-6 border flex items-center gap-4 ${
+        isVerified
+          ? 'bg-green-500/5 border-green-500/20'
+          : 'bg-amber-500/5 border-amber-500/20'
+      }`}>
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+          isVerified ? 'bg-green-500/10' : 'bg-amber-500/10'
+        }`}>
+          {isVerified ? (
+            <Shield className="w-7 h-7 text-green-400" />
+          ) : (
+            <AlertTriangle className="w-7 h-7 text-amber-400" />
+          )}
+        </div>
+        <div className="flex-1">
+          <p className={`font-bold text-sm ${isVerified ? 'text-green-400' : 'text-amber-400'}`}>
+            {isVerified ? 'Player Card Verified ✓' : 'Unverified — Player Card Required'}
+          </p>
+          <p className="text-[10px] text-zinc-500 mt-0.5">
+            {isVerified
+              ? 'You are visible on the free agent market and eligible for team matching.'
+              : 'Purchase a Player Card ($9.99) to appear on the market and get matched with teams.'}
+          </p>
+        </div>
+        {!isVerified && (
+          <button className="px-4 py-2 bg-amber-500 text-black text-[10px] font-bold uppercase rounded-xl hover:bg-amber-400 transition-all whitespace-nowrap">
+            Get Player Card
+          </button>
+        )}
+      </div>
+
+      {/* Free Agent Toggle — only for verified, unattached players */}
+      {isFreeAgent && isVerified && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {isOpenToOffers ? (
+              <Eye className="w-5 h-5 text-green-400" />
+            ) : (
+              <EyeOff className="w-5 h-5 text-zinc-500" />
+            )}
+            <div>
+              <p className="text-sm font-bold text-white">Free Agent Visibility</p>
+              <p className="text-[10px] text-zinc-500">
+                {isOpenToOffers
+                  ? 'Coaches can see you on the market and express interest.'
+                  : 'You are hidden from the market. Toggle on to receive team interest.'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={toggleFreeAgent}
+            disabled={toggling}
+            className={`relative w-14 h-7 rounded-full transition-all ${
+              isOpenToOffers ? 'bg-green-500' : 'bg-zinc-700'
+            }`}
+          >
+            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-lg transition-all ${
+              isOpenToOffers ? 'left-[calc(100%-1.625rem)]' : 'left-0.5'
+            }`} />
+          </button>
+        </div>
+      )}
+
+      {/* Interest Activity */}
+      {(matchedInterests.length > 0 || pendingInterests.length > 0) && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-4">
+          <h4 className="text-lg font-bold text-white uppercase italic tracking-tighter flex items-center gap-2">
+            <Heart className="w-5 h-5 text-pink-500" /> Matching Activity
+          </h4>
+
+          {matchedInterests.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] text-green-400 uppercase font-bold tracking-widest">🎉 Mutual Matches</p>
+              {matchedInterests.map((m: any) => (
+                <div key={m.id} className="flex items-center justify-between bg-green-500/5 border border-green-500/20 px-4 py-3 rounded-xl">
+                  <div>
+                    <p className="text-sm font-bold text-white">
+                      {m.team?.name || `Team #${m.team?.id || m.teamId}`}
+                    </p>
+                    <p className="text-[10px] text-zinc-500">{m.direction} • Awaiting admin approval</p>
+                  </div>
+                  <span className="px-3 py-1 bg-green-500/20 text-green-400 text-[9px] font-black uppercase rounded-full">Matched</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {pendingInterests.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] text-yellow-500 uppercase font-bold tracking-widest">Teams Interested in You</p>
+              {pendingInterests.map((m: any) => (
+                <div key={m.id} className="flex items-center justify-between bg-yellow-500/5 border border-yellow-500/20 px-4 py-3 rounded-xl">
+                  <div>
+                    <p className="text-sm font-bold text-white">
+                      {m.team?.name || `Team #${m.team?.id || m.teamId}`}
+                    </p>
+                    <p className="text-[10px] text-zinc-500">{m.direction}</p>
+                  </div>
+                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-500 text-[9px] font-black uppercase rounded-full">
+                    <Clock className="w-3 h-3 inline mr-1" />Pending
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Join Team by Invite Code */}
-      {!(player.team_name || player.teamName) && (
+      {isFreeAgent && (
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
           <h4 className="text-lg font-bold text-white uppercase italic tracking-tighter mb-4 flex items-center gap-2">
             <Ticket className="w-5 h-5 text-yellow-500" /> Join Team by Invite Code
@@ -171,7 +309,7 @@ export default function PlayerDashboard() {
                     {req.team_name || req.teamName || `Team #${req.team_id || req.teamId}`}
                   </p>
                   <p className="text-[10px] text-zinc-500 uppercase font-bold">
-                    {req.direction || 'TEAM_TO_PLAYER'} request
+                    {req.request_type || req.requestType || 'JOIN'} • {req.direction || 'TEAM_TO_PLAYER'}
                   </p>
                 </div>
                 <div className="flex gap-2">

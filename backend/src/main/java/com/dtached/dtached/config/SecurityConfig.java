@@ -73,6 +73,7 @@ public class SecurityConfig {
 
                     // Player verify
                     .requestMatchers(HttpMethod.POST, "/api/players/verify").authenticated()
+                    .requestMatchers(HttpMethod.PUT, "/api/players/me/free-agent").hasRole("PLAYER")
 
                     // Matching — interest endpoints
                     .requestMatchers(HttpMethod.POST, "/api/interests/team/*/player/*").hasAnyRole("COACH", "TEAM_MANAGER")

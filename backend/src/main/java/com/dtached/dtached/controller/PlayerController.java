@@ -69,4 +69,17 @@ public class PlayerController {
         playerService.verifyPlayer(authentication.getName(), playerId);
         return ResponseEntity.ok(java.util.Map.of("message", "Player verified"));
     }
+
+    /**
+     * Toggle free agent market visibility.
+     * Only verified players without a team can toggle.
+     */
+    @PutMapping("/me/free-agent")
+    public ResponseEntity<java.util.Map<String, Object>> toggleFreeAgent(Authentication authentication) {
+        boolean newState = playerService.toggleFreeAgentVisibility(authentication.getName());
+        return ResponseEntity.ok(java.util.Map.of(
+                "message", newState ? "Now visible on the market" : "Hidden from the market",
+                "openToOffers", newState
+        ));
+    }
 }
