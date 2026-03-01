@@ -104,8 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({
         email: regData.email.toLowerCase().trim(),
         password: regData.password,
-        first_name: regData.firstName.trim(),
-        last_name: regData.lastName.trim(),
+        firstName: regData.firstName.trim(),
+        lastName: regData.lastName.trim(),
       }),
     });
 
