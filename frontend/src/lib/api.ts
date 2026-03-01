@@ -1,6 +1,8 @@
 import type { Player, TeamStandings, Game } from '../types';
 import { seedPlayers, seedTeams, seedGames } from '../data/seedData';
 
+export const API_URL = '/api';
+
 export async function fetchTournamentData(tournamentType: '7v7' | 'Flag') {
   try {
     const [pRes, gRes, tRes] = await Promise.all([

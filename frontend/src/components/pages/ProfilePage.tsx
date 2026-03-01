@@ -15,10 +15,9 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { cn, formatRole } from '../../lib/utils';
+import { API_URL as API } from '../../lib/api';
 
 const POSITIONS = ['QB', 'WR', 'RB', 'TE', 'DB', 'LB', 'DL', 'OL', 'K', 'P', 'ATH'];
-
-const API = import.meta.env.VITE_API_URL || '/api';
 
 export default function ProfilePage() {
   const { user } = useAuth();

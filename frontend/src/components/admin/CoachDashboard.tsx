@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Shield, UserPlus, Search } from 'lucide-react';
 import type { Player } from '../../types';
-
-const API = import.meta.env.VITE_API_URL || '/api';
+import { API_URL as API } from '../../lib/api';
 
 const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: Player[] }) => {
   const [requests, setRequests] = useState<any[]>([]);

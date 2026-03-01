@@ -8,8 +8,7 @@ import StatsManagement from '../admin/StatsManagement';
 import GameManagement from '../admin/GameManagement';
 import CoachDashboard from '../admin/CoachDashboard';
 import { Shield, ShieldAlert, Users, Trophy, Gamepad2, UserCheck, Clock, Zap } from 'lucide-react';
-
-const API = import.meta.env.VITE_API_URL || '/api';
+import { API_URL as API } from '../../lib/api';
 
 interface AdminPageProps {
   adminSubTab: 'teams' | 'players' | 'stats' | 'matchups';

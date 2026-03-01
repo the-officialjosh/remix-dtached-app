@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Save, Edit2, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { TeamStandings } from '../../types';
-
-const API = import.meta.env.VITE_API_URL || '/api';
+import { API_URL as API } from '../../lib/api';
 
 const TeamManagement = ({ teams, onUpdate }: { teams: TeamStandings[]; onUpdate: () => void }) => {
   const [editingTeam, setEditingTeam] = useState<Partial<TeamStandings> | null>(null);

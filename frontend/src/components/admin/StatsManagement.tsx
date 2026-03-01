@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Save } from 'lucide-react';
 import type { Player } from '../../types';
-
-const API = import.meta.env.VITE_API_URL || '/api';
+import { API_URL as API } from '../../lib/api';
 
 const StatsManagement = ({ players, onUpdate }: { players: Player[]; onUpdate: () => void }) => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | ''>('');
