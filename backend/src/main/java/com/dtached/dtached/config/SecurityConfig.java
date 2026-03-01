@@ -61,6 +61,19 @@ public class SecurityConfig {
                     // Staff endpoints
                     .requestMatchers("/api/staff/**").hasAnyRole("ADMIN", "COACH", "TEAM_MANAGER")
 
+                    // Invite endpoints
+                    .requestMatchers(HttpMethod.POST, "/api/teams/*/invite").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.GET, "/api/teams/*/invites").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.GET, "/api/invites/*/accept").authenticated()
+
+                    // Team needs
+                    .requestMatchers(HttpMethod.GET, "/api/teams/*/needs").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/teams/*/needs").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/team-needs/**").hasAnyRole("COACH", "TEAM_MANAGER", "ADMIN")
+
+                    // Player verify
+                    .requestMatchers(HttpMethod.POST, "/api/players/verify").authenticated()
+
                     // Swagger / OpenAPI
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 

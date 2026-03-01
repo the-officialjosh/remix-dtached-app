@@ -54,4 +54,19 @@ public class PlayerController {
     ) {
         return ResponseEntity.ok(playerService.getFreeAgents(position));
     }
+
+    /**
+     * Verify a player's identity (admin or self).
+     */
+    @PostMapping("/verify")
+    public ResponseEntity<java.util.Map<String, String>> verifyPlayer(
+            Authentication authentication,
+            @RequestBody java.util.Map<String, Object> body
+    ) {
+        Long playerId = body.containsKey("playerId")
+                ? Long.valueOf(body.get("playerId").toString())
+                : null;
+        playerService.verifyPlayer(authentication.getName(), playerId);
+        return ResponseEntity.ok(java.util.Map.of("message", "Player verified"));
+    }
 }

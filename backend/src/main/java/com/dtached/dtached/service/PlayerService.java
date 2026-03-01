@@ -105,4 +105,28 @@ public class PlayerService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Verify a player's identity. Admin can verify any player by ID.
+     * A player can verify themselves (playerId = null → uses own profile).
+     */
+    @Transactional
+    public void verifyPlayer(String email, Long playerId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Player player;
+        if (playerId != null) {
+            // Admin verifying a specific player
+            player = playerRepository.findById(playerId)
+                    .orElseThrow(() -> new RuntimeException("Player not found"));
+        } else {
+            // Self-verification
+            player = playerRepository.findByUserId(user.getId())
+                    .orElseThrow(() -> new RuntimeException("No player profile found"));
+        }
+
+        player.setIsVerified(true);
+        playerRepository.save(player);
+    }
 }
