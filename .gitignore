@@ -7,6 +7,9 @@ backend/target/
 backend/.mvn/
 backend/*.jar
 
+# Secrets
+.env
+
 # IDE
 .idea/
 *.iml

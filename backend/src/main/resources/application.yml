@@ -10,7 +10,7 @@ server:
 # JWT config
 app:
   jwt:
-    secret: ${JWT_SECRET:dtached-dev-secret-key-change-in-production-min-256-bits-required}
+    secret: ${JWT_SECRET}
     expiration-ms: 86400000  # 24 hours
 
 # Actuator
