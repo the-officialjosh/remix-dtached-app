@@ -29,6 +29,7 @@ public class DataSeeder implements CommandLineRunner {
     private final GameRepository gameRepository;
     private final EventRepository eventRepository;
     private final EventDivisionRepository eventDivisionRepository;
+    private final EventPackageRepository eventPackageRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -160,8 +161,10 @@ public class DataSeeder implements CommandLineRunner {
                 .registrationDeadline(LocalDate.of(2026, 7, 1))
                 .format("7v7")
                 .status("PUBLISHED")
+                .eventType("CAMP")
+                .requiredFields("[\"jersey_size\",\"shorts_size\"]")
                 .maxTeams(16)
-                .entryFee(BigDecimal.valueOf(45.00))
+                .entryFee(BigDecimal.valueOf(100.00))
                 .build());
 
         TournamentEvent tourney = eventRepository.save(TournamentEvent.builder()
@@ -174,8 +177,10 @@ public class DataSeeder implements CommandLineRunner {
                 .registrationDeadline(LocalDate.of(2026, 7, 25))
                 .format("7v7")
                 .status("PUBLISHED")
+                .eventType("TOURNAMENT")
+                .requiredFields("[\"team_name\",\"category\",\"video_url\"]")
                 .maxTeams(32)
-                .entryFee(BigDecimal.valueOf(100.00))
+                .entryFee(BigDecimal.valueOf(90.00))
                 .build());
 
         // Divisions for each event
@@ -184,6 +189,17 @@ public class DataSeeder implements CommandLineRunner {
         eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Elite").ageGroup("U18").maxTeams(16).build());
         eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Premier").ageGroup("U16").maxTeams(16).build());
 
-        log.info("Seeded 2 events with 4 divisions.");
+        // Packages for camp
+        eventPackageRepository.save(EventPackage.builder().event(camp).name("Camp Registration").price(BigDecimal.valueOf(100.00))
+                .description("Camp Access + Jersey + Shorts + Gift Bag").includes("[\"Camp Access\",\"Jersey\",\"Shorts\",\"Gift Bag\"]").isDefault(true).sortOrder(0).build());
+
+        // Packages for tournament
+        eventPackageRepository.save(EventPackage.builder().event(tourney).name("Starter Pack").price(BigDecimal.valueOf(45.00))
+                .description("Dtached Gloves + Admission").includes("[\"Dtached Gloves\",\"Admission\"]").sortOrder(0).build());
+        eventPackageRepository.save(EventPackage.builder().event(tourney).name("Complete Pack").price(BigDecimal.valueOf(90.00))
+                .description("Team Uniform + Dtached Gloves + Admission").includes("[\"Team Uniform\",\"Dtached Gloves\",\"Admission\"]").isDefault(true).sortOrder(1).build());
+
+        log.info("Seeded 2 events with 4 divisions and 3 packages.");
     }
 }
+

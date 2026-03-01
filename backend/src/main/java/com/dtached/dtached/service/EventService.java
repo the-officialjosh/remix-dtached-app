@@ -20,6 +20,9 @@ public class EventService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
     private final GameRepository gameRepository;
+    private final EventPackageRepository packageRepository;
+    private final PlayerEventRegistrationRepository playerRegRepository;
+    private final PlayerRepository playerRepository;
 
     // ========== EVENTS ==========
 
@@ -45,7 +48,12 @@ public class EventService {
                 .map(this::toFieldMap).collect(Collectors.toList()));
         map.put("registrations", registrationRepository.findByEventId(id).stream()
                 .map(this::toRegistrationMap).collect(Collectors.toList()));
+        map.put("packages", packageRepository.findByEventIdOrderBySortOrderAsc(id).stream()
+                .map(this::toPackageMap).collect(Collectors.toList()));
+        map.put("playerRegistrations", playerRegRepository.findByEventId(id).stream()
+                .map(this::toPlayerRegMap).collect(Collectors.toList()));
         map.put("registeredTeams", registrationRepository.countByEventId(id));
+        map.put("registeredPlayers", playerRegRepository.countByEventId(id));
         return map;
     }
 
@@ -64,10 +72,12 @@ public class EventService {
                         ? java.time.LocalDate.parse((String) body.get("registrationDeadline")) : null)
                 .format((String) body.getOrDefault("format", "7v7"))
                 .status((String) body.getOrDefault("status", "DRAFT"))
+                .eventType((String) body.getOrDefault("eventType", "TOURNAMENT"))
                 .maxTeams(body.get("maxTeams") != null ? ((Number) body.get("maxTeams")).intValue() : null)
                 .entryFee(body.get("entryFee") != null
                         ? new java.math.BigDecimal(body.get("entryFee").toString()) : null)
                 .bannerUrl((String) body.get("bannerUrl"))
+                .requiredFields((String) body.get("requiredFields"))
                 .build();
         return toEventMap(eventRepository.save(event));
     }
@@ -89,10 +99,12 @@ public class EventService {
                 body.get("registrationDeadline") != null ? java.time.LocalDate.parse((String) body.get("registrationDeadline")) : null);
         if (body.containsKey("format")) event.setFormat((String) body.get("format"));
         if (body.containsKey("status")) event.setStatus((String) body.get("status"));
+        if (body.containsKey("eventType")) event.setEventType((String) body.get("eventType"));
         if (body.containsKey("maxTeams")) event.setMaxTeams(body.get("maxTeams") != null ? ((Number) body.get("maxTeams")).intValue() : null);
         if (body.containsKey("entryFee")) event.setEntryFee(body.get("entryFee") != null
                 ? new java.math.BigDecimal(body.get("entryFee").toString()) : null);
         if (body.containsKey("bannerUrl")) event.setBannerUrl((String) body.get("bannerUrl"));
+        if (body.containsKey("requiredFields")) event.setRequiredFields((String) body.get("requiredFields"));
 
         return toEventMap(eventRepository.save(event));
     }
@@ -123,7 +135,7 @@ public class EventService {
         divisionRepository.deleteById(divisionId);
     }
 
-    // ========== REGISTRATIONS ==========
+    // ========== TEAM REGISTRATIONS ==========
 
     @Transactional
     public Map<String, Object> registerTeam(Long eventId, String coachEmail, Map<String, Object> body) {
@@ -141,12 +153,10 @@ public class EventService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
 
-        // Check if already registered
         registrationRepository.findByEventIdAndTeamId(eventId, teamId).ifPresent(r -> {
             throw new RuntimeException("Team is already registered for this event");
         });
 
-        // Check max teams
         if (event.getMaxTeams() != null) {
             long current = registrationRepository.countByEventId(eventId);
             if (current >= event.getMaxTeams()) {
@@ -176,10 +186,95 @@ public class EventService {
         return toRegistrationMap(registrationRepository.save(reg));
     }
 
-    public List<Map<String, Object>> getTeamRegistrations(Long teamId) {
-        return registrationRepository.findByTeamId(teamId).stream()
-                .map(this::toRegistrationMap)
+    // ========== PLAYER REGISTRATIONS ==========
+
+    @Transactional
+    public Map<String, Object> registerPlayer(Long eventId, String email, Map<String, Object> body) {
+        TournamentEvent event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        if (!"PUBLISHED".equals(event.getStatus())) {
+            throw new RuntimeException("Event is not open for registration");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        playerRegRepository.findByEventIdAndUserId(eventId, user.getId()).ifPresent(r -> {
+            throw new RuntimeException("You are already registered for this event");
+        });
+
+        Player player = playerRepository.findByUserId(user.getId()).orElse(null);
+
+        Long divisionId = body.get("divisionId") != null ? ((Number) body.get("divisionId")).longValue() : null;
+        EventDivision division = divisionId != null ? divisionRepository.findById(divisionId).orElse(null) : null;
+
+        Long packageId = body.get("packageId") != null ? ((Number) body.get("packageId")).longValue() : null;
+        EventPackage pkg = packageId != null ? packageRepository.findById(packageId).orElse(null) : null;
+
+        PlayerEventRegistration reg = PlayerEventRegistration.builder()
+                .event(event)
+                .player(player)
+                .user(user)
+                .division(division)
+                .eventPackage(pkg)
+                .status("PENDING")
+                .jerseySize((String) body.get("jerseySize"))
+                .shortsSize((String) body.get("shortsSize"))
+                .teamName((String) body.get("teamName"))
+                .category((String) body.get("category"))
+                .hasTeam(body.get("hasTeam") != null ? (Boolean) body.get("hasTeam") : false)
+                .videoUrl((String) body.get("videoUrl"))
+                .paymentStatus((String) body.getOrDefault("paymentStatus", "UNPAID"))
+                .notes((String) body.get("notes"))
+                .build();
+
+        return toPlayerRegMap(playerRegRepository.save(reg));
+    }
+
+    @Transactional
+    public Map<String, Object> updatePlayerRegStatus(Long regId, String status) {
+        PlayerEventRegistration reg = playerRegRepository.findById(regId)
+                .orElseThrow(() -> new RuntimeException("Registration not found"));
+        reg.setStatus(status);
+        return toPlayerRegMap(playerRegRepository.save(reg));
+    }
+
+    public List<Map<String, Object>> getMyRegistrations(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) return List.of();
+        return playerRegRepository.findByUserId(user.getId()).stream()
+                .map(this::toPlayerRegMap)
                 .collect(Collectors.toList());
+    }
+
+    // ========== PACKAGES ==========
+
+    public List<Map<String, Object>> getPackages(Long eventId) {
+        return packageRepository.findByEventIdOrderBySortOrderAsc(eventId).stream()
+                .map(this::toPackageMap)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Map<String, Object> addPackage(Long eventId, Map<String, Object> body) {
+        TournamentEvent event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        EventPackage pkg = EventPackage.builder()
+                .event(event)
+                .name((String) body.get("name"))
+                .price(new java.math.BigDecimal(body.get("price").toString()))
+                .description((String) body.get("description"))
+                .includes((String) body.get("includes"))
+                .isDefault(body.get("isDefault") != null ? (Boolean) body.get("isDefault") : false)
+                .sortOrder(body.get("sortOrder") != null ? ((Number) body.get("sortOrder")).intValue() : 0)
+                .build();
+        return toPackageMap(packageRepository.save(pkg));
+    }
+
+    @Transactional
+    public void deletePackage(Long packageId) {
+        packageRepository.deleteById(packageId);
     }
 
     // ========== FIELDS ==========
@@ -219,9 +314,11 @@ public class EventService {
         m.put("registrationDeadline", e.getRegistrationDeadline() != null ? e.getRegistrationDeadline().toString() : null);
         m.put("format", e.getFormat());
         m.put("status", e.getStatus());
+        m.put("eventType", e.getEventType());
         m.put("maxTeams", e.getMaxTeams());
         m.put("entryFee", e.getEntryFee());
         m.put("bannerUrl", e.getBannerUrl());
+        m.put("requiredFields", e.getRequiredFields());
         m.put("createdAt", e.getCreatedAt() != null ? e.getCreatedAt().toString() : null);
         return m;
     }
@@ -249,6 +346,42 @@ public class EventService {
         m.put("status", r.getStatus());
         m.put("rosterLocked", r.getRosterLocked());
         m.put("notes", r.getNotes());
+        m.put("registeredAt", r.getRegisteredAt() != null ? r.getRegisteredAt().toString() : null);
+        return m;
+    }
+
+    private Map<String, Object> toPackageMap(EventPackage p) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", p.getId());
+        m.put("eventId", p.getEvent().getId());
+        m.put("name", p.getName());
+        m.put("price", p.getPrice());
+        m.put("description", p.getDescription());
+        m.put("includes", p.getIncludes());
+        m.put("isDefault", p.getIsDefault());
+        m.put("sortOrder", p.getSortOrder());
+        return m;
+    }
+
+    private Map<String, Object> toPlayerRegMap(PlayerEventRegistration r) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", r.getId());
+        m.put("eventId", r.getEvent().getId());
+        m.put("eventName", r.getEvent().getName());
+        m.put("userId", r.getUser() != null ? r.getUser().getId() : null);
+        m.put("userName", r.getUser() != null ? r.getUser().getFirstName() + " " + r.getUser().getLastName() : null);
+        m.put("divisionId", r.getDivision() != null ? r.getDivision().getId() : null);
+        m.put("divisionName", r.getDivision() != null ? r.getDivision().getName() : null);
+        m.put("packageId", r.getEventPackage() != null ? r.getEventPackage().getId() : null);
+        m.put("packageName", r.getEventPackage() != null ? r.getEventPackage().getName() : null);
+        m.put("status", r.getStatus());
+        m.put("jerseySize", r.getJerseySize());
+        m.put("shortsSize", r.getShortsSize());
+        m.put("teamName", r.getTeamName());
+        m.put("category", r.getCategory());
+        m.put("hasTeam", r.getHasTeam());
+        m.put("videoUrl", r.getVideoUrl());
+        m.put("paymentStatus", r.getPaymentStatus());
         m.put("registeredAt", r.getRegisteredAt() != null ? r.getRegisteredAt().toString() : null);
         return m;
     }

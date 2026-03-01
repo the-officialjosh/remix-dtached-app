@@ -2,12 +2,10 @@ package com.dtached.dtached.controller;
 
 import com.dtached.dtached.service.EventService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,87 +18,120 @@ public class EventController {
     // ========== PUBLIC ==========
 
     @GetMapping("/published")
-    public ResponseEntity<List<Map<String, Object>>> getPublishedEvents() {
+    public ResponseEntity<?> getPublishedEvents() {
         return ResponseEntity.ok(eventService.getPublishedEvents());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getEvent(@PathVariable Long id) {
-        return ResponseEntity.ok(eventService.getEvent(id));
+    @GetMapping("/{eventId}")
+    public ResponseEntity<?> getEvent(@PathVariable Long eventId) {
+        try {
+            return ResponseEntity.ok(eventService.getEvent(eventId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    // ========== ADMIN ==========
+    @GetMapping("/{eventId}/packages")
+    public ResponseEntity<?> getPackages(@PathVariable Long eventId) {
+        return ResponseEntity.ok(eventService.getPackages(eventId));
+    }
+
+    // ========== ADMIN: EVENTS ==========
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllEvents() {
+    public ResponseEntity<?> getAllEvents() {
         return ResponseEntity.ok(eventService.getAllEvents());
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createEvent(@RequestBody Map<String, Object> body) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(body));
+    public ResponseEntity<?> createEvent(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(eventService.createEvent(body));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updateEvent(@PathVariable Long id, @RequestBody Map<String, Object> body) {
-        return ResponseEntity.ok(eventService.updateEvent(id, body));
+    @PutMapping("/{eventId}")
+    public ResponseEntity<?> updateEvent(@PathVariable Long eventId, @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(eventService.updateEvent(eventId, body));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<?> deleteEvent(@PathVariable Long eventId) {
+        eventService.deleteEvent(eventId);
+        return ResponseEntity.ok(Map.of("message", "Event deleted"));
     }
 
-    // ========== DIVISIONS ==========
+    // ========== ADMIN: DIVISIONS ==========
 
     @PostMapping("/{eventId}/divisions")
-    public ResponseEntity<Map<String, Object>> addDivision(@PathVariable Long eventId, @RequestBody Map<String, Object> body) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.addDivision(eventId, body));
+    public ResponseEntity<?> addDivision(@PathVariable Long eventId, @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(eventService.addDivision(eventId, body));
     }
 
     @DeleteMapping("/divisions/{divisionId}")
-    public ResponseEntity<Void> deleteDivision(@PathVariable Long divisionId) {
+    public ResponseEntity<?> deleteDivision(@PathVariable Long divisionId) {
         eventService.deleteDivision(divisionId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Division deleted"));
     }
 
-    // ========== REGISTRATIONS ==========
+    // ========== ADMIN: PACKAGES ==========
 
-    @PostMapping("/{eventId}/register")
-    public ResponseEntity<Map<String, Object>> registerTeam(
-            @PathVariable Long eventId,
-            Authentication authentication,
-            @RequestBody Map<String, Object> body
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(eventService.registerTeam(eventId, authentication.getName(), body));
+    @PostMapping("/{eventId}/packages")
+    public ResponseEntity<?> addPackage(@PathVariable Long eventId, @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(eventService.addPackage(eventId, body));
     }
 
-    @PutMapping("/registrations/{registrationId}/status")
-    public ResponseEntity<Map<String, Object>> updateRegistrationStatus(
-            @PathVariable Long registrationId,
-            @RequestBody Map<String, Object> body
-    ) {
-        return ResponseEntity.ok(eventService.updateRegistrationStatus(registrationId, (String) body.get("status")));
+    @DeleteMapping("/packages/{packageId}")
+    public ResponseEntity<?> deletePackage(@PathVariable Long packageId) {
+        eventService.deletePackage(packageId);
+        return ResponseEntity.ok(Map.of("message", "Package deleted"));
     }
 
-    @GetMapping("/my-registrations")
-    public ResponseEntity<List<Map<String, Object>>> getMyRegistrations(Authentication authentication) {
-        // This would need the team lookup — for now return empty
-        return ResponseEntity.ok(List.of());
-    }
-
-    // ========== FIELDS ==========
+    // ========== ADMIN: FIELDS ==========
 
     @PostMapping("/{eventId}/fields")
-    public ResponseEntity<Map<String, Object>> addField(@PathVariable Long eventId, @RequestBody Map<String, Object> body) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.addField(eventId, body));
+    public ResponseEntity<?> addField(@PathVariable Long eventId, @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(eventService.addField(eventId, body));
     }
 
     @DeleteMapping("/fields/{fieldId}")
-    public ResponseEntity<Void> deleteField(@PathVariable Long fieldId) {
+    public ResponseEntity<?> deleteField(@PathVariable Long fieldId) {
         eventService.deleteField(fieldId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Field deleted"));
+    }
+
+    // ========== TEAM REGISTRATION ==========
+
+    @PostMapping("/{eventId}/register")
+    public ResponseEntity<?> registerTeam(@PathVariable Long eventId, Authentication auth, @RequestBody Map<String, Object> body) {
+        try {
+            return ResponseEntity.ok(eventService.registerTeam(eventId, auth.getName(), body));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/registrations/{registrationId}/status")
+    public ResponseEntity<?> updateRegistrationStatus(@PathVariable Long registrationId, @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(eventService.updateRegistrationStatus(registrationId, (String) body.get("status")));
+    }
+
+    // ========== PLAYER REGISTRATION ==========
+
+    @PostMapping("/{eventId}/register/player")
+    public ResponseEntity<?> registerPlayer(@PathVariable Long eventId, Authentication auth, @RequestBody Map<String, Object> body) {
+        try {
+            return ResponseEntity.ok(eventService.registerPlayer(eventId, auth.getName(), body));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/player-registrations/{regId}/status")
+    public ResponseEntity<?> updatePlayerRegStatus(@PathVariable Long regId, @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(eventService.updatePlayerRegStatus(regId, (String) body.get("status")));
+    }
+
+    @GetMapping("/my-registrations")
+    public ResponseEntity<?> getMyRegistrations(Authentication auth) {
+        return ResponseEntity.ok(eventService.getMyRegistrations(auth.getName()));
     }
 }

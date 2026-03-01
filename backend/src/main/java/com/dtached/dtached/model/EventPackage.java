@@ -1,0 +1,39 @@
+package com.dtached.dtached.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "event_packages")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder
+public class EventPackage {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false)
+    private TournamentEvent event;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private BigDecimal price;
+
+    private String description;
+    private String includes;
+
+    @Column(name = "is_default")
+    @Builder.Default
+    private Boolean isDefault = false;
+
+    @Column(name = "sort_order")
+    @Builder.Default
+    private Integer sortOrder = 0;
+}

@@ -7,8 +7,8 @@ interface TournamentEvent {
   id: number; name: string; description?: string; location?: string; address?: string;
   city?: string; provinceState?: string; startDate: string; endDate: string;
   registrationDeadline?: string; format: string; status: string; maxTeams?: number;
-  entryFee?: number; bannerUrl?: string; createdAt: string;
-  divisions?: any[]; fields?: any[]; registrations?: any[]; registeredTeams?: number;
+  entryFee?: number; bannerUrl?: string; createdAt: string; eventType?: string;
+  divisions?: any[]; fields?: any[]; packages?: any[]; registrations?: any[]; playerRegistrations?: any[]; registeredTeams?: number; registeredPlayers?: number;
 }
 
 export default function EventManagement() {
@@ -17,9 +17,10 @@ export default function EventManagement() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', location: '', city: '', provinceState: '', startDate: '', endDate: '', registrationDeadline: '', format: '7v7', status: 'DRAFT', maxTeams: '', entryFee: '' });
+  const [form, setForm] = useState({ name: '', description: '', location: '', city: '', provinceState: '', startDate: '', endDate: '', registrationDeadline: '', format: '7v7', status: 'DRAFT', eventType: 'TOURNAMENT', maxTeams: '', entryFee: '' });
   const [divForm, setDivForm] = useState({ name: '', ageGroup: '', maxTeams: '', format: '' });
   const [fieldForm, setFieldForm] = useState({ name: '', location: '', capacity: '', surfaceType: 'GRASS' });
+  const [pkgForm, setPkgForm] = useState({ name: '', price: '', description: '' });
   const [saving, setSaving] = useState(false);
 
   const fetchEvents = async () => {
@@ -60,7 +61,7 @@ export default function EventManagement() {
           entryFee: form.entryFee ? parseFloat(form.entryFee) : null,
         })
       });
-      if (res.ok) { setShowCreate(false); setForm({ name: '', description: '', location: '', city: '', provinceState: '', startDate: '', endDate: '', registrationDeadline: '', format: '7v7', status: 'DRAFT', maxTeams: '', entryFee: '' }); fetchEvents(); }
+      if (res.ok) { setShowCreate(false); setForm({ name: '', description: '', location: '', city: '', provinceState: '', startDate: '', endDate: '', registrationDeadline: '', format: '7v7', status: 'DRAFT', eventType: 'TOURNAMENT', maxTeams: '', entryFee: '' }); fetchEvents(); }
     } catch {}
     setSaving(false);
   };
@@ -116,6 +117,28 @@ export default function EventManagement() {
     fetchEventDetail(eventId);
   };
 
+  const updatePlayerRegStatus = async (regId: number, status: string, eventId: number) => {
+    await fetch(`${API}/events/player-registrations/${regId}/status`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status })
+    });
+    fetchEventDetail(eventId);
+  };
+
+  const addPackage = async (eventId: number) => {
+    await fetch(`${API}/events/${eventId}/packages`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ ...pkgForm, price: pkgForm.price ? parseFloat(pkgForm.price) : 0 })
+    });
+    setPkgForm({ name: '', price: '', description: '' });
+    fetchEventDetail(eventId);
+  };
+
+  const deletePackage = async (pkgId: number, eventId: number) => {
+    await fetch(`${API}/events/packages/${pkgId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    fetchEventDetail(eventId);
+  };
+
   const statusColors: Record<string, string> = {
     DRAFT: 'bg-zinc-700 text-zinc-300',
     PUBLISHED: 'bg-green-500/20 text-green-400 border border-green-500/30',
@@ -157,6 +180,12 @@ export default function EventManagement() {
               <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1 block">Registration Deadline</label>
               <input type="date" value={form.registrationDeadline} onChange={e => setForm({ ...form, registrationDeadline: e.target.value })} className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-yellow-500 outline-none" />
             </div>
+            <select value={form.eventType} onChange={e => setForm({ ...form, eventType: e.target.value })} className="bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-yellow-500 outline-none">
+              <option value="TOURNAMENT">Tournament</option>
+              <option value="CAMP">Camp</option>
+              <option value="SHOWCASE">Showcase</option>
+              <option value="COMBINE">Combine</option>
+            </select>
             <select value={form.format} onChange={e => setForm({ ...form, format: e.target.value })} className="bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-yellow-500 outline-none">
               <option value="7v7">7v7</option>
               <option value="5v5">5v5</option>
@@ -222,11 +251,12 @@ export default function EventManagement() {
                   </div>
 
                   {/* Info */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Registered</p><p className="text-white font-black text-lg">{event.registeredTeams ?? 0}{event.maxTeams ? `/${event.maxTeams}` : ''}</p></div>
-                    <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Entry Fee</p><p className="text-white font-black text-lg">{event.entryFee ? `$${event.entryFee}` : 'Free'}</p></div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                    <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Type</p><p className="text-white font-black text-lg">{event.eventType || 'EVENT'}</p></div>
+                    <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Teams</p><p className="text-white font-black text-lg">{event.registeredTeams ?? 0}{event.maxTeams ? `/${event.maxTeams}` : ''}</p></div>
+                    <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Players</p><p className="text-white font-black text-lg">{event.registeredPlayers ?? 0}</p></div>
+                    <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Packages</p><p className="text-white font-black text-lg">{event.packages?.length ?? 0}</p></div>
                     <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Divisions</p><p className="text-white font-black text-lg">{event.divisions?.length ?? 0}</p></div>
-                    <div className="bg-zinc-900 rounded-xl p-3"><p className="text-[9px] text-zinc-500 uppercase font-bold">Fields</p><p className="text-white font-black text-lg">{event.fields?.length ?? 0}</p></div>
                   </div>
 
                   {/* Divisions */}
@@ -265,7 +295,26 @@ export default function EventManagement() {
                     </div>
                   </div>
 
-                  {/* Registrations */}
+                  {/* Packages */}
+                  <div>
+                    <h5 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">Packages</h5>
+                    <div className="space-y-2">
+                      {event.packages?.map((p: any) => (
+                        <div key={p.id} className="flex items-center justify-between bg-zinc-900 rounded-xl px-4 py-2">
+                          <span className="text-white text-sm font-bold">${p.price} — {p.name} <span className="text-zinc-500 font-normal">{p.description}</span></span>
+                          <button onClick={() => deletePackage(p.id, event.id)} className="text-red-400 hover:text-red-300"><Trash2 className="w-3.5 h-3.5"/></button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <input placeholder="Package Name" value={pkgForm.name} onChange={e => setPkgForm({...pkgForm, name: e.target.value})} className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-xs outline-none focus:border-yellow-500" />
+                      <input type="number" step="0.01" placeholder="Price" value={pkgForm.price} onChange={e => setPkgForm({...pkgForm, price: e.target.value})} className="w-24 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-xs outline-none focus:border-yellow-500" />
+                      <input placeholder="Description" value={pkgForm.description} onChange={e => setPkgForm({...pkgForm, description: e.target.value})} className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-xs outline-none focus:border-yellow-500" />
+                      <button onClick={() => addPackage(event.id)} disabled={!pkgForm.name || !pkgForm.price} className="px-3 py-1.5 bg-yellow-500 text-black font-bold text-xs rounded-lg hover:bg-yellow-400 disabled:opacity-40"><Plus className="w-3.5 h-3.5"/></button>
+                    </div>
+                  </div>
+
+                  {/* Team Registrations */}
                   <div>
                     <h5 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">Team Registrations</h5>
                     {(!event.registrations || event.registrations.length === 0) ? (
@@ -283,6 +332,33 @@ export default function EventManagement() {
                               <div className="flex gap-2">
                                 <button onClick={() => updateRegStatus(r.id, 'APPROVED', event.id)} className="p-1.5 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"><Check className="w-3.5 h-3.5"/></button>
                                 <button onClick={() => updateRegStatus(r.id, 'REJECTED', event.id)} className="p-1.5 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"><X className="w-3.5 h-3.5"/></button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Player Registrations */}
+                  <div>
+                    <h5 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">Player Registrations</h5>
+                    {(!event.playerRegistrations || event.playerRegistrations.length === 0) ? (
+                      <p className="text-zinc-600 text-xs">No players registered yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {event.playerRegistrations.map((r: any) => (
+                          <div key={r.id} className="flex items-center justify-between bg-zinc-900 rounded-xl px-4 py-3">
+                            <div>
+                              <span className="text-white font-bold text-sm">{r.userName}</span>
+                              {r.packageName && <span className="text-zinc-500 text-xs ml-2">({r.packageName})</span>}
+                              {r.divisionName && <span className="text-zinc-500 text-xs ml-2">· {r.divisionName}</span>}
+                              <span className={cn('ml-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase', r.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' : r.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400')}>{r.status}</span>
+                            </div>
+                            {r.status === 'PENDING' && (
+                              <div className="flex gap-2">
+                                <button onClick={() => updatePlayerRegStatus(r.id, 'APPROVED', event.id)} className="p-1.5 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"><Check className="w-3.5 h-3.5"/></button>
+                                <button onClick={() => updatePlayerRegStatus(r.id, 'REJECTED', event.id)} className="p-1.5 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"><X className="w-3.5 h-3.5"/></button>
                               </div>
                             )}
                           </div>

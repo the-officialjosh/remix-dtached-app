@@ -55,6 +55,13 @@ public class TournamentEvent {
     @Column(name = "banner_url")
     private String bannerUrl;
 
+    @Column(name = "event_type")
+    @Builder.Default
+    private String eventType = "TOURNAMENT";
+
+    @Column(name = "required_fields")
+    private String requiredFields;
+
     @Column(name = "created_at", nullable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
