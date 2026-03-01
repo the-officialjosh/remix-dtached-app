@@ -204,6 +204,23 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
             >
               Lock Roster
             </button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch(`${API}/payments/checkout/team-entry`, {
+                    method: 'POST',
+                    headers: authHeaders,
+                    body: JSON.stringify({ teamId: myTeam.id }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.url) window.location.href = data.url;
+                  else alert(data.error || 'Failed to start checkout');
+                } catch { alert('Payment service unavailable'); }
+              }}
+              className="px-4 py-1.5 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase rounded-full hover:bg-yellow-500/20 transition-all"
+            >
+              Tournament Entry — $45
+            </button>
           </div>
         </div>
         {(myTeam.invite_code || myTeam.inviteCode) && (

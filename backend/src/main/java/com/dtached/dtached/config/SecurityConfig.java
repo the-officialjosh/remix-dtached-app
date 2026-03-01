@@ -81,6 +81,13 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/interests/my").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/interests/team/*").hasAnyRole("COACH", "TEAM_MANAGER")
 
+                    // Payments
+                    .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/payments/tiers").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/payments/checkout/**").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/payments/my").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/payments/admin/**").hasRole("ADMIN")
+
                     // Transfers
                     .requestMatchers(HttpMethod.POST, "/api/transfers").hasRole("PLAYER")
 

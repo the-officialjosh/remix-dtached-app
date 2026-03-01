@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Shield, Mail, CheckCircle, XCircle, Ticket, Heart, Eye, EyeOff, AlertTriangle, Clock } from 'lucide-react';
+import { Users, UserPlus, Shield, Mail, CheckCircle, XCircle, Ticket, Heart, Eye, EyeOff, AlertTriangle, Clock, CreditCard } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { API_URL as API } from '../../lib/api';
 
@@ -14,6 +14,7 @@ export default function PlayerDashboard() {
   const [joinErr, setJoinErr] = useState('');
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   const authHeaders = {
     'Content-Type': 'application/json',
@@ -82,6 +83,25 @@ export default function PlayerDashboard() {
       if (p) setPlayer(p);
     } catch { /* silently handle */ }
     setToggling(false);
+  };
+
+  const handlePlayerCardCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      const res = await fetch(`${API}/payments/checkout/player-card`, {
+        method: 'POST',
+        headers: authHeaders,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Failed to start checkout');
+      }
+    } catch {
+      alert('Payment service unavailable');
+    }
+    setCheckingOut(false);
   };
 
   if (loading) {
@@ -179,8 +199,13 @@ export default function PlayerDashboard() {
           </p>
         </div>
         {!isVerified && (
-          <button className="px-4 py-2 bg-amber-500 text-black text-[10px] font-bold uppercase rounded-xl hover:bg-amber-400 transition-all whitespace-nowrap">
-            Get Player Card
+          <button
+            onClick={handlePlayerCardCheckout}
+            disabled={checkingOut}
+            className="flex items-center gap-1 px-4 py-2 bg-amber-500 text-black text-[10px] font-bold uppercase rounded-xl hover:bg-amber-400 transition-all whitespace-nowrap disabled:opacity-50"
+          >
+            <CreditCard className="w-3 h-3" />
+            {checkingOut ? 'Loading...' : 'Get Player Card — $9.99'}
           </button>
         )}
       </div>
