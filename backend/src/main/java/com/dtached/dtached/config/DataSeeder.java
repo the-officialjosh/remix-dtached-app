@@ -39,22 +39,37 @@ public class DataSeeder implements CommandLineRunner {
 
         // --- Users (coaches) ---
         User coach1 = userRepository.save(User.builder()
-                .email("coach.carter@dtached.com").passwordHash(passwordEncoder.encode("password"))
+                .email("coach.carter@dtached.com").passwordHash(passwordEncoder.encode("password123"))
                 .firstName("Coach").lastName("Carter").role(UserRole.COACH).emailConfirmed(true).build());
         User coach2 = userRepository.save(User.builder()
-                .email("coach.prime@dtached.com").passwordHash(passwordEncoder.encode("password"))
+                .email("coach.prime@dtached.com").passwordHash(passwordEncoder.encode("password123"))
                 .firstName("Coach").lastName("Prime").role(UserRole.COACH).emailConfirmed(true).build());
         User coach3 = userRepository.save(User.builder()
-                .email("coach.sarah@dtached.com").passwordHash(passwordEncoder.encode("password"))
+                .email("coach.sarah@dtached.com").passwordHash(passwordEncoder.encode("password123"))
                 .firstName("Coach").lastName("Sarah").role(UserRole.COACH).emailConfirmed(true).build());
         User coach4 = userRepository.save(User.builder()
-                .email("coach.kelly@dtached.com").passwordHash(passwordEncoder.encode("password"))
+                .email("coach.kelly@dtached.com").passwordHash(passwordEncoder.encode("password123"))
                 .firstName("Coach").lastName("Kelly").role(UserRole.COACH).emailConfirmed(true).build());
 
         // --- Admin user ---
-        userRepository.save(User.builder()
-                .email("admin@dtached.com").passwordHash(passwordEncoder.encode("admin123"))
+        User admin = userRepository.save(User.builder()
+                .email("admin@dtached.com").passwordHash(passwordEncoder.encode("password123"))
                 .firstName("Admin").lastName("Dtached").role(UserRole.ADMIN).emailConfirmed(true).build());
+
+        // --- Player user ---
+        User playerUser = userRepository.save(User.builder()
+                .email("player@dtached.com").passwordHash(passwordEncoder.encode("password123"))
+                .firstName("Player").lastName("Demo").role(UserRole.PLAYER).emailConfirmed(true).build());
+
+        // --- Team Manager user ---
+        userRepository.save(User.builder()
+                .email("manager@dtached.com").passwordHash(passwordEncoder.encode("password123"))
+                .firstName("Manager").lastName("Demo").role(UserRole.TEAM_MANAGER).emailConfirmed(true).build());
+
+        // --- Staff user ---
+        userRepository.save(User.builder()
+                .email("staff@dtached.com").passwordHash(passwordEncoder.encode("password123"))
+                .firstName("Staff").lastName("Demo").role(UserRole.STAFF).emailConfirmed(true).build());
 
         // --- Teams ---
         Team titans = teamRepository.save(Team.builder()
