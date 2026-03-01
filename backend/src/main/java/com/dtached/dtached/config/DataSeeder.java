@@ -163,7 +163,6 @@ public class DataSeeder implements CommandLineRunner {
                 .status("PUBLISHED")
                 .eventType("CAMP")
                 .requiredFields("[\"jersey_size\",\"shorts_size\"]")
-                .maxTeams(16)
                 .entryFee(BigDecimal.valueOf(100.00))
                 .build());
 
@@ -179,15 +178,14 @@ public class DataSeeder implements CommandLineRunner {
                 .status("PUBLISHED")
                 .eventType("TOURNAMENT")
                 .requiredFields("[\"team_name\",\"category\",\"video_url\"]")
-                .maxTeams(32)
                 .entryFee(BigDecimal.valueOf(90.00))
                 .build());
 
         // Divisions: 7v7 Boys & Flag Girls
-        eventDivisionRepository.save(EventDivision.builder().event(camp).name("7v7 Boys").ageGroup("U18").maxTeams(8).build());
-        eventDivisionRepository.save(EventDivision.builder().event(camp).name("Flag Girls").ageGroup("U18").maxTeams(8).build());
-        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("7v7 Boys").ageGroup("U18").maxTeams(16).build());
-        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Flag Girls").ageGroup("U18").maxTeams(16).build());
+        eventDivisionRepository.save(EventDivision.builder().event(camp).name("7v7 Boys").ageGroup("U18").build());
+        eventDivisionRepository.save(EventDivision.builder().event(camp).name("Flag Girls").ageGroup("U18").build());
+        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("7v7 Boys").ageGroup("U18").build());
+        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Flag Girls").ageGroup("U18").build());
 
         // Packages for camp
         eventPackageRepository.save(EventPackage.builder().event(camp).name("Camp Registration").price(BigDecimal.valueOf(100.00))
