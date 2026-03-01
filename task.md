@@ -59,23 +59,23 @@
 ## Phase 3 — Movement Logic
 
 ### 3.1 Coach-Led Player Release
-- [ ] `CoachController`: `DELETE /api/my/team/players/{playerId}` — remove player from roster
-- [ ] `PlayerService.releasePlayer()` — set status to `RELEASED`, clear team FK
-- [ ] Create `ReleaseRecord` entity (who released, when, from which team)
-- [ ] Frontend: remove button on coach roster view, confirmation modal
+- [x] `CoachController`: `DELETE /api/my/team/players/{playerId}` — remove player from roster
+- [x] `PlayerService.releasePlayer()` — set status to `RELEASED`, clear team FK
+- [x] Create `ReleaseRecord` entity (who released, when, from which team)
+- [x] Frontend: remove button on coach roster view, confirmation modal
 
 ### 3.2 Free Agent Visibility Toggle
-- [ ] `PlayerController`: `PUT /api/players/me/free-agent` — toggle visibility
-- [ ] Business rule: only if `isVerified = true` AND `team = null`
-- [ ] Add `openToOffers` boolean to Player entity
-- [ ] `MatchingService`: filter by `openToOffers = true` in coach search
-- [ ] Frontend: toggle switch on Player Dashboard
+- [x] `PlayerController`: `PUT /api/players/me/free-agent` — toggle visibility
+- [x] Business rule: only if `isVerified = true` AND `team = null`
+- [x] Add `openToOffers` boolean to Player entity
+- [x] `MatchingService`: filter by `openToOffers = true` in coach search
+- [x] Frontend: toggle switch on Player Dashboard
 
 ### 3.3 Verified-Only Market
-- [ ] `MatchingService.teamLikesPlayer()`: add `isVerified` check
-- [ ] `PlayerRepository`: add `findByStatusAndIsVerified()` query
-- [ ] Coach free agent search: only returns verified players
-- [ ] UI: "Verified" badge on player cards
+- [x] `MatchingService.teamLikesPlayer()`: add `isVerified` check
+- [x] `PlayerRepository`: add `findByStatusAndIsVerified()` query
+- [x] Coach free agent search: only returns verified players
+- [x] UI: "Verified" badge on player cards
 
 ---
 
