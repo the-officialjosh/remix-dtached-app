@@ -1,5 +1,5 @@
+import React from 'react';
 import {
-  Home,
   Trophy,
   Users,
   Calendar,
@@ -8,7 +8,7 @@ import {
   Settings,
   Plus,
   LogIn,
-  LogOut,
+  UserCircle,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../lib/AuthContext';
@@ -19,7 +19,7 @@ interface MobileNavProps {
 }
 
 export default function MobileNav({ activeTab, setActiveTab }: MobileNavProps) {
-  const { isAuthenticated, isAdmin, isCoach, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isCoach } = useAuth();
 
   const tabs = [
     { id: 'stats', icon: Trophy },
@@ -28,8 +28,11 @@ export default function MobileNav({ activeTab, setActiveTab }: MobileNavProps) {
     { id: 'media', icon: ImageIcon },
     { id: 'live', icon: Play },
     { id: 'register', icon: Plus },
-    // Only show Management for admin/coach
     ...((isAdmin || isCoach) ? [{ id: 'admin', icon: Settings }] : []),
+    // Profile/login as last item
+    ...(isAuthenticated
+      ? [{ id: 'profile', icon: UserCircle }]
+      : [{ id: 'login', icon: LogIn }]),
   ];
 
   return (
@@ -47,27 +50,6 @@ export default function MobileNav({ activeTab, setActiveTab }: MobileNavProps) {
           <tab.icon className="w-6 h-6" />
         </button>
       ))}
-      {/* Auth button */}
-      {isAuthenticated ? (
-        <button
-          onClick={logout}
-          className="p-3 rounded-xl text-zinc-500 hover:text-red-400 transition-all"
-          aria-label="Sign Out"
-        >
-          <LogOut className="w-6 h-6" />
-        </button>
-      ) : (
-        <button
-          onClick={() => setActiveTab('login')}
-          className={cn(
-            "p-3 rounded-xl transition-all",
-            activeTab === 'login' ? "bg-yellow-500 text-black" : "text-zinc-500"
-          )}
-          aria-label="Sign In"
-        >
-          <LogIn className="w-6 h-6" />
-        </button>
-      )}
     </nav>
   );
 }

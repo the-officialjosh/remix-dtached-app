@@ -26,6 +26,7 @@ import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
 import RoleSelectionPage from './components/pages/RoleSelectionPage';
 import DashboardPage from './components/pages/DashboardPage';
+import ProfilePage from './components/pages/ProfilePage';
 
 // --- Feature Components ---
 import TeamModal from './components/team/TeamModal';
@@ -148,6 +149,12 @@ function AppContent() {
               {activeTab === 'dashboard' && (
                 <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                   <DashboardPage onNavigate={(tab) => setActiveTab(tab)} />
+                </motion.div>
+              )}
+
+              {activeTab === 'profile' && (
+                <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <ProfilePage />
                 </motion.div>
               )}
 
