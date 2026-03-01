@@ -29,6 +29,7 @@ import DashboardPage from './components/pages/DashboardPage';
 import ProfilePage from './components/pages/ProfilePage';
 import ForgotPasswordPage from './components/pages/ForgotPasswordPage';
 import ResetPasswordPage from './components/pages/ResetPasswordPage';
+import EventsPage from './components/pages/EventsPage';
 
 // --- Feature Components ---
 import TeamModal from './components/team/TeamModal';
@@ -210,15 +211,8 @@ function AppContent() {
 
 
               {activeTab === 'register' && (
-                <motion.div key={`register-${initialEventType || 'none'}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                  <PlayerRegistration
-                    initialEventType={initialEventType}
-                    onComplete={() => {
-                      setActiveTab('stats');
-                      setInitialEventType(undefined);
-                      loadData();
-                    }}
-                  />
+                <motion.div key="events" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <EventsPage />
                 </motion.div>
               )}
 

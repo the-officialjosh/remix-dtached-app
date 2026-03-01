@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Component
@@ -25,6 +27,8 @@ public class DataSeeder implements CommandLineRunner {
     private final TeamStaffRepository teamStaffRepository;
     private final PlayerRepository playerRepository;
     private final GameRepository gameRepository;
+    private final EventRepository eventRepository;
+    private final EventDivisionRepository eventDivisionRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -144,5 +148,42 @@ public class DataSeeder implements CommandLineRunner {
                 .homeScore(0).awayScore(0).build());
 
         log.info("Database seeded: 5 users, 4 teams, 4 players, 2 games.");
+
+        // --- Events ---
+        TournamentEvent camp = eventRepository.save(TournamentEvent.builder()
+                .name("Dtached Summer Camp 2026")
+                .description("A 3-day intensive training camp focused on skill development, position coaching, and competitive drills. Open to all skill levels.")
+                .location("Concordia Stadium")
+                .city("Montreal").provinceState("QC")
+                .startDate(LocalDate.of(2026, 7, 15))
+                .endDate(LocalDate.of(2026, 7, 17))
+                .registrationDeadline(LocalDate.of(2026, 7, 1))
+                .format("7v7")
+                .status("PUBLISHED")
+                .maxTeams(16)
+                .entryFee(BigDecimal.valueOf(45.00))
+                .build());
+
+        TournamentEvent tourney = eventRepository.save(TournamentEvent.builder()
+                .name("Dtached Championship Tournament")
+                .description("The premier 7v7 championship featuring the top teams from across Canada. Pool play into single-elimination brackets.")
+                .location("BMO Field")
+                .city("Toronto").provinceState("ON")
+                .startDate(LocalDate.of(2026, 8, 10))
+                .endDate(LocalDate.of(2026, 8, 12))
+                .registrationDeadline(LocalDate.of(2026, 7, 25))
+                .format("7v7")
+                .status("PUBLISHED")
+                .maxTeams(32)
+                .entryFee(BigDecimal.valueOf(100.00))
+                .build());
+
+        // Divisions for each event
+        eventDivisionRepository.save(EventDivision.builder().event(camp).name("Elite").ageGroup("U18").maxTeams(8).build());
+        eventDivisionRepository.save(EventDivision.builder().event(camp).name("Development").ageGroup("U16").maxTeams(8).build());
+        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Elite").ageGroup("U18").maxTeams(16).build());
+        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Premier").ageGroup("U16").maxTeams(16).build());
+
+        log.info("Seeded 2 events with 4 divisions.");
     }
 }
