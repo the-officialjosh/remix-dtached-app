@@ -65,6 +65,25 @@ function AppContent() {
     loadData();
   }, [loadData]);
 
+  // Handle email confirmation token from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      fetch(`/api/auth/confirm?token=${token}`)
+        .then(res => {
+          if (res.ok) {
+            addNotification('Email confirmed successfully!');
+          } else {
+            addNotification('Email confirmation failed or expired.');
+          }
+        })
+        .catch(() => addNotification('Email confirmation failed.'));
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // After login: redirect to dashboard (or role selection if needed)
   useEffect(() => {
     if (isAuthenticated && (activeTab === 'login' || activeTab === 'signup')) {

@@ -11,16 +11,20 @@ import {
   MailCheck,
   MailWarning,
   Send,
+  Settings,
 } from 'lucide-react';
+import PlayerDashboard from './PlayerDashboard';
 
 interface DashboardPageProps {
   onNavigate: (tab: string) => void;
 }
 
 export default function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const { user, resendConfirmation } = useAuth();
+  const { user, resendConfirmation, isAdmin, isCoach } = useAuth();
   const [resending, setResending] = React.useState(false);
   const [resent, setResent] = React.useState(false);
+
+  const isPlayer = user?.role === 'PLAYER';
 
   const handleResend = async () => {
     setResending(true);
@@ -86,7 +90,10 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           { label: 'Leaderboard', icon: Trophy, tab: 'stats', desc: 'View player stats' },
           { label: 'Teams', icon: Users, tab: 'standings', desc: 'Team standings' },
           { label: 'Schedule', icon: Calendar, tab: 'schedule', desc: 'Upcoming games' },
-          { label: 'My Profile', icon: UserCircle, tab: 'profile', desc: 'View your profile' },
+          { label: 'My Profile', icon: UserCircle, tab: 'profile', desc: 'Edit your profile' },
+          ...((isAdmin || isCoach) ? [
+            { label: 'Management', icon: Settings, tab: 'admin', desc: 'Admin & coach tools' },
+          ] : []),
         ].map((item) => (
           <button
             key={item.tab}
@@ -101,6 +108,13 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           </button>
         ))}
       </div>
+
+      {/* Player-specific dashboard */}
+      {isPlayer && (
+        <div className="mt-4">
+          <PlayerDashboard />
+        </div>
+      )}
     </motion.div>
   );
 }
