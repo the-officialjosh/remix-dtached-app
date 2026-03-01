@@ -7,14 +7,17 @@ import com.dtached.dtached.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Profile("!prod")
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -25,6 +28,7 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(String... args) {
         if (teamRepository.count() > 0) {
             log.info("Database already seeded, skipping.");

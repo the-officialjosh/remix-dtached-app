@@ -26,5 +26,5 @@ public class TeamStaff {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private TeamStaffRole role = TeamStaffRole.HEAD_COACH;
+    private TeamStaffRole role = TeamStaffRole.ASSISTANT_COACH;
 }

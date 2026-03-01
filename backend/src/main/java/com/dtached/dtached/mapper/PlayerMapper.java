@@ -10,11 +10,12 @@ import java.util.List;
 public interface PlayerMapper {
 
     @Mapping(target = "name", expression = "java(player.getFullName())")
-    @Mapping(source = "team.name", target = "teamName")
+    @Mapping(target = "teamName", expression = "java(player.getTeam() != null ? player.getTeam().getName() : null)")
     @Mapping(source = "photoUrl", target = "photo")
     @Mapping(target = "linkedUserId", expression = "java(player.getUser() != null ? player.getUser().getId().toString() : null)")
-    @Mapping(target = "isVerified", expression = "java(player.getIsVerified() ? 1 : 0)")
-    @Mapping(target = "jerseyConfirmed", expression = "java(player.getJerseyConfirmed() ? 1 : 0)")
+    @Mapping(target = "isVerified", expression = "java(Boolean.TRUE.equals(player.getIsVerified()) ? 1 : 0)")
+    @Mapping(target = "jerseyConfirmed", expression = "java(Boolean.TRUE.equals(player.getJerseyConfirmed()) ? 1 : 0)")
+    @Mapping(target = "instagram", ignore = true)
     @Mapping(target = "pendingTeamName", ignore = true)
     @Mapping(target = "pendingCategory", ignore = true)
     PlayerDTO toDTO(Player player);

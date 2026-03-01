@@ -2,7 +2,7 @@ package com.dtached.dtached.mapper;
 
 import com.dtached.dtached.dto.TeamDTO;
 import com.dtached.dtached.model.Team;
-import com.dtached.dtached.model.TeamStaff;
+import com.dtached.dtached.model.enums.TeamStaffRole;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -19,11 +19,14 @@ public interface TeamMapper {
     List<TeamDTO> toDTOList(List<Team> teams);
 
     default String getHeadCoachName(Team team) {
-        if (team.getStaff() == null) return null;
+        if (team == null || team.getStaff() == null) return null;
         return team.getStaff().stream()
-                .filter(s -> s.getRole().name().equals("HEAD_COACH"))
+                .filter(s -> s.getRole() == TeamStaffRole.HEAD_COACH)
                 .findFirst()
-                .map(s -> s.getUser().getFirstName() + " " + s.getUser().getLastName())
+                .map(s -> {
+                    if (s.getUser() == null) return null;
+                    return s.getUser().getFirstName() + " " + s.getUser().getLastName();
+                })
                 .orElse(null);
     }
 }
