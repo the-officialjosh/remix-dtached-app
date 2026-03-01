@@ -46,7 +46,8 @@ public class ProfileService {
                     .dob(player.getDob())
                     .gender(player.getGender())
                     .isVerified(player.getIsVerified())
-                    .hasPlayerProfile(true);
+                    .hasPlayerProfile(true)
+                    .bio(player.getBio());
         });
 
         return builder.build();
@@ -86,6 +87,7 @@ public class ProfileService {
             if (request.getJerseyNumber() != null) player.setNumber(request.getJerseyNumber());
             if (request.getDob() != null) player.setDob(request.getDob());
             if (request.getGender() != null) player.setGender(request.getGender());
+            if (request.getBio() != null) player.setBio(request.getBio());
             playerRepository.save(player);
         }
 

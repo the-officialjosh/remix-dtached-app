@@ -116,6 +116,7 @@ export default function ProfilePage() {
           photoUrl: photoPreview || null,
           dob: form.dob || null,
           gender: form.gender || null,
+          bio: form.bio || null,
         }),
       });
       if (!res.ok) {
