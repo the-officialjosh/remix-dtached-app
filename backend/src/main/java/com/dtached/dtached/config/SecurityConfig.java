@@ -46,6 +46,17 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/games/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/players/register").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/players/free-agents").permitAll()
+
+                    // Admin endpoints — ADMIN only
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                    // Coach/Team Manager endpoints
+                    .requestMatchers(HttpMethod.POST, "/api/teams/register").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers("/api/free-agents/**").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.POST, "/api/team-requests/**").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.PUT, "/api/my/team/**").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.POST, "/api/players/confirm-jersey").hasAnyRole("COACH", "TEAM_MANAGER")
 
                     // Swagger / OpenAPI
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

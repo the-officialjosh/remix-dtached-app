@@ -1,0 +1,113 @@
+package com.dtached.dtached.controller;
+
+import com.dtached.dtached.dto.PlayerSummaryDTO;
+import com.dtached.dtached.dto.TeamDTO;
+import com.dtached.dtached.dto.TeamRegistrationRequest;
+import com.dtached.dtached.model.TeamRequest;
+import com.dtached.dtached.service.PlayerService;
+import com.dtached.dtached.service.TeamRequestService;
+import com.dtached.dtached.service.TeamService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequiredArgsConstructor
+public class CoachController {
+
+    private final TeamService teamService;
+    private final PlayerService playerService;
+    private final TeamRequestService teamRequestService;
+
+    // ---- Team management ----
+
+    @PostMapping("/api/teams/register")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<TeamDTO> registerTeam(
+            Authentication auth,
+            @Valid @RequestBody TeamRegistrationRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(teamService.registerTeam(auth.getName(), request));
+    }
+
+    @GetMapping("/api/my/team")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<TeamDTO> getMyTeam(Authentication auth) {
+        return ResponseEntity.ok(teamService.getMyTeam(auth.getName()));
+    }
+
+    @PutMapping("/api/my/team/roster/lock")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> lockRoster(Authentication auth) {
+        teamService.lockRoster(auth.getName());
+        return ResponseEntity.ok(Map.of("message", "Roster locked"));
+    }
+
+    @PostMapping("/api/players/confirm-jersey")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> confirmJersey(
+            Authentication auth,
+            @RequestBody Map<String, Long> body
+    ) {
+        Long playerId = body.get("playerId");
+        if (playerId == null) throw new IllegalArgumentException("playerId is required");
+        teamService.confirmJersey(auth.getName(), playerId);
+        return ResponseEntity.ok(Map.of("message", "Jersey confirmed"));
+    }
+
+    // ---- Free agents ----
+
+    @GetMapping("/api/free-agents")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<List<PlayerSummaryDTO>> getFreeAgents(
+            @RequestParam(required = false) String position
+    ) {
+        return ResponseEntity.ok(playerService.getFreeAgents(position));
+    }
+
+    // ---- Team requests ----
+
+    @PostMapping("/api/team-requests/{playerId}")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> sendRequest(
+            Authentication auth,
+            @PathVariable Long playerId
+    ) {
+        teamRequestService.sendRequest(auth.getName(), playerId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("message", "Request sent"));
+    }
+
+    // ---- Player request handling (player endpoints) ----
+
+    @GetMapping("/api/my/requests")
+    public ResponseEntity<List<TeamRequest>> getMyRequests(Authentication auth) {
+        return ResponseEntity.ok(teamRequestService.getPlayerRequests(auth.getName()));
+    }
+
+    @PutMapping("/api/team-requests/{id}/accept")
+    public ResponseEntity<Map<String, String>> acceptRequest(
+            Authentication auth,
+            @PathVariable Long id
+    ) {
+        teamRequestService.acceptRequest(auth.getName(), id);
+        return ResponseEntity.ok(Map.of("message", "Request accepted — you're on the team!"));
+    }
+
+    @PutMapping("/api/team-requests/{id}/reject")
+    public ResponseEntity<Map<String, String>> rejectRequest(
+            Authentication auth,
+            @PathVariable Long id
+    ) {
+        teamRequestService.rejectRequest(auth.getName(), id);
+        return ResponseEntity.ok(Map.of("message", "Request rejected"));
+    }
+}
