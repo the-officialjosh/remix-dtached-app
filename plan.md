@@ -133,27 +133,113 @@ The core missing piece. Right now games are manually created one by one. A real 
 
 ---
 
-## 🟡 Phase E — Payments & Registration
+## 🔴 Phase E — Monetization & Pricing Model
+
+> This is the core business model. Everything flows through these tiers.
+
+### Pricing Tiers
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  TIER 0 — FREE (Unverified)                              $0.00     │
+│  ─────────────────────────────────────────                          │
+│  • Sign up, create a profile                                       │
+│  • Browse the platform (standings, schedule, leaderboard)           │
+│  • NOT verified — can't be on a roster, can't attend events        │
+│  • Teams/coaches CANNOT see you in free agent search               │
+│  • Basically a "preview" — you see the platform but can't play     │
+├──────────────────────────────────────────────────────────────────────┤
+│  TIER 1 — PLAYER CARD (Free Agent Pass)         $9.99 / ~$18 reg   │
+│  ─────────────────────────────────────────                          │
+│  • Become a VERIFIED player on the platform                        │
+│  • Your Player Card = your digital ID                              │
+│  • Visible to all coaches/teams in free agent browse               │
+│  • Can receive team requests, accept invites                       │
+│  • Access to premium media content                                 │
+│  • NON-REFUNDABLE — this is your platform registration fee         │
+│  • If no team picks you up, you keep your credit for future events │
+│  • Promotional pricing: $9.99 (regular $18)                        │
+│  • Target: Free agents looking to get scouted                      │
+├──────────────────────────────────────────────────────────────────────┤
+│  TIER 2 — TOURNAMENT ENTRY (Team Registration)           $45.00     │
+│  ─────────────────────────────────────────                          │
+│  • Register a team for a specific tournament                       │
+│  • INCLUDES Player Card ($9.99 waived for all team members)        │
+│  • All team members become verified automatically                  │
+│  • Team branding, gear package included                            │
+│  • Per-tournament — pay for each event separately                  │
+│  • Coach pays once for the whole team                              │
+│  • Target: Teams coming to compete                                 │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### How the Money Flows
+
+```
+FREE AGENT PATH:
+  Sign up ($0) → Platform preview (unverified)
+    → Pay $9.99 → Verified Player Card → Visible to coaches
+      → Team picks you up → You're on a roster
+        → Team pays $45 tournament fee → You play
+
+TEAM PATH:
+  Coach registers team → Admin approves
+    → Coach pays $45 → All members auto-verified (no $9.99 needed)
+      → Team is registered for tournament → Play
+
+HYBRID (Free agent gets picked up mid-season):
+  Free agent pays $9.99 → Gets scouted → Joins a team
+    → Team still pays $45 for tournament → Agent's $9.99 was platform-only
+    → We get $9.99 + $45 = $54.99 from that player's flow
+```
+
+### Business Logic Rules
+
+| Rule | Description |
+|------|-------------|
+| **Unverified = invisible** | Coaches browsing free agents only see VERIFIED (paid) players |
+| **No pay = no roster** | Coach gets a warning: "This player is unverified and cannot attend" |
+| **$9.99 is non-refundable** | It's a platform fee, not a tournament fee. No refund if you don't get picked |
+| **$45 waives $9.99** | Team members don't need to separately buy a Player Card |
+| **Credits persist** | If you pay $9.99 and don't play this event, your Player Card stays for future events |
+| **Free agents cost more overall** | $9.99 + $45 = $54.99. Teams just pay $45. Incentivizes joining a team |
+| **Intentional signups** | The $9.99 barrier ensures only serious people sign up. Reduces admin review workload |
+| **Player Card = premium access** | Media gallery, livestream, platform features locked behind Player Card |
+
+### Promotional Pricing
+
+| Scenario | Player Card Price | Notes |
+|----------|-------------------|-------|
+| Regular price | $18 | Standard platform registration |
+| Launch / promo window | $9.99 | Early adopter pricing |
+| Partner event deal | $5 or FREE | e.g. "Free Player Card if you attend St. Justice tournament" |
+| Team registration | WAIVED | Included in $45 tournament fee |
 
 ### E1. Event Registration Flow
-- Multi-step registration form (player info → team selection → waiver → payment)
-- Pre-fill form for logged-in users
+- Multi-step: player info → tier selection → waiver → payment
+- Pre-fill for logged-in users
 - Waiver / consent form (digital signature)
 - Parent/guardian info for minors
-- Medical info / emergency contact
-- Registration confirmation PDF
+- Emergency contact / medical info
+- Registration confirmation PDF + email
 
 ### E2. Payments (Stripe)
-- Team registration fee
-- Individual player registration fee
-- Early bird pricing
-- Promo codes / discounts
+- Tier 1 checkout ($9.99 Player Card)
+- Tier 2 checkout ($45 Tournament Entry)
+- Promo codes / partner deals
 - Payment receipt email
-- Refund management
-- Revenue dashboard for admin
-- Split payments (team fee divided among players)
+- Admin revenue dashboard
+- No refund flow for Tier 1 (non-refundable by design)
+- Tournament refund policy (admin discretion)
 
-### E3. Merchandise
+### E3. Player Card
+- Digital ID card (name, photo, position, verified badge)
+- QR code for venue check-in
+- Tournament history / credits
+- Shareable card image (social media ready)
+- Printable/downloadable PDF version
+
+### E4. Merchandise
 - Jersey ordering (size, number, name)
 - Shorts / gear ordering
 - Order tracking
@@ -263,13 +349,12 @@ The core missing piece. Right now games are manually created one by one. A real 
 
 | Priority | Phase | Impact | Effort |
 |----------|-------|--------|--------|
+| 🔴 Must | E. Monetization (3 tiers + Stripe) | **Revenue** | High |
 | 🔴 Must | A. Tournament Engine | Critical | High |
 | 🔴 Must | D1. Email (SendGrid) | Critical | Low |
-| 🔴 Must | E1. Event Registration | Critical | Medium |
 | 🟡 Should | B. Game Day Experience | High | Medium |
-| 🟡 Should | C1. Rich Profiles | High | Medium |
+| 🟡 Should | C. Rich Profiles + Player Card | High | Medium |
 | 🟡 Should | D2. In-App Notifications | High | Medium |
-| 🟡 Should | E2. Payments (Stripe) | High | Medium |
 | 🟢 Nice | F. Analytics | Medium | Medium |
 | 🟢 Nice | G. Mobile/PWA | Medium | Low |
 | 🟢 Nice | H. Content/Social | Medium | High |
