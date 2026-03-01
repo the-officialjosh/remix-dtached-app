@@ -4,6 +4,9 @@ import type { Player, TeamStandings, Game } from './types';
 import { fetchTournamentData } from './lib/api';
 import { useWebSocket } from './hooks/useWebSocket';
 
+// --- Auth ---
+import { AuthProvider, useAuth } from './lib/AuthContext';
+
 // --- Layout ---
 import Header from './components/layout/Header';
 import MobileNav from './components/layout/MobileNav';
@@ -19,14 +22,17 @@ import SchedulePage from './components/pages/SchedulePage';
 import MediaPage from './components/pages/MediaPage';
 import LivePage from './components/pages/LivePage';
 import AdminPage from './components/pages/AdminPage';
+import LoginPage from './components/pages/LoginPage';
+import RegisterPage from './components/pages/RegisterPage';
 
 // --- Feature Components ---
 import TeamModal from './components/team/TeamModal';
 import PlayerProfileModal from './components/player/PlayerProfileModal';
 import PlayerRegistration from './components/registration/PlayerRegistration';
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'stats' | 'standings' | 'schedule' | 'media' | 'live' | 'admin' | 'register'>('home');
+function AppContent() {
+  const { isAuthenticated, isAdmin, isCoach } = useAuth();
+  const [activeTab, setActiveTab] = useState<'home' | 'stats' | 'standings' | 'schedule' | 'media' | 'live' | 'admin' | 'register' | 'login' | 'signup'>('home');
   const [adminSubTab, setAdminSubTab] = useState<'teams' | 'players' | 'stats' | 'matchups'>('teams');
   const [tournamentType, setTournamentType] = useState<'7v7' | 'Flag'>('7v7');
   const [players, setPlayers] = useState<Player[]>([]);
@@ -35,7 +41,6 @@ export default function App() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<TeamStandings | null>(null);
   const [isPremium, setIsPremium] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<{ id: number; msg: string }[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
@@ -56,6 +61,13 @@ export default function App() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Redirect to home after login
+  useEffect(() => {
+    if (isAuthenticated && (activeTab === 'login' || activeTab === 'signup')) {
+      setActiveTab('home');
+    }
+  }, [isAuthenticated, activeTab]);
 
   const addNotification = (msg: string) => {
     const id = Date.now();
@@ -81,7 +93,6 @@ export default function App() {
   );
 
   return (
-    <LanguageProvider>
     <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-yellow-500 selection:text-black">
       <LanguagePicker />
       <Header
@@ -133,8 +144,6 @@ export default function App() {
           {activeTab === 'admin' && (
             <motion.div key="admin" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
               <AdminPage
-                isAdmin={isAdmin}
-                setIsAdmin={setIsAdmin}
                 adminSubTab={adminSubTab}
                 setAdminSubTab={setAdminSubTab}
                 players={players}
@@ -173,6 +182,18 @@ export default function App() {
           {activeTab === 'live' && (
             <motion.div key="live" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }}>
               <LivePage games={games} tournamentType={tournamentType} />
+            </motion.div>
+          )}
+
+          {activeTab === 'login' && (
+            <motion.div key="login" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <LoginPage onSwitchToRegister={() => setActiveTab('signup')} />
+            </motion.div>
+          )}
+
+          {activeTab === 'signup' && (
+            <motion.div key="signup" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <RegisterPage onSwitchToLogin={() => setActiveTab('login')} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -228,6 +249,15 @@ export default function App() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </LanguageProvider>
   );
 }

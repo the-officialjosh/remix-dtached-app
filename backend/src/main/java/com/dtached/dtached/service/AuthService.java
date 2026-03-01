@@ -8,9 +8,12 @@ import com.dtached.dtached.model.enums.UserRole;
 import com.dtached.dtached.repository.UserRepository;
 import com.dtached.dtached.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +25,9 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
+
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already registered");
         }
 
@@ -33,16 +38,15 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid role: " + request.getRole());
         }
 
-        // Only allow self-registration for PLAYER, COACH, TEAM_MANAGER
         if (role == UserRole.ADMIN || role == UserRole.STAFF) {
             throw new IllegalArgumentException("Cannot self-register as " + role);
         }
 
         User user = User.builder()
-                .email(request.getEmail())
+                .email(email)
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
+                .firstName(request.getFirstName().trim())
+                .lastName(request.getLastName().trim())
                 .role(role)
                 .build();
 
@@ -50,45 +54,38 @@ public class AuthService {
 
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
-        return AuthResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .role(user.getRole().name())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .userId(user.getId())
-                .build();
+        return buildResponse(user, token);
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+        String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password");
+            throw new BadCredentialsException("Invalid email or password");
         }
 
         if (!Boolean.TRUE.equals(user.getIsActive())) {
-            throw new IllegalArgumentException("Account is deactivated");
+            throw new BadCredentialsException("Account is deactivated");
         }
 
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
-        return AuthResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .role(user.getRole().name())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .userId(user.getId())
-                .build();
+        return buildResponse(user, token);
     }
 
     public AuthResponse getCurrentUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        return buildResponse(user, null);
+    }
+
+    private AuthResponse buildResponse(User user, String token) {
         return AuthResponse.builder()
+                .token(token)
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .firstName(user.getFirstName())

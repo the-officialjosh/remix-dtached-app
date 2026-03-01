@@ -7,9 +7,12 @@ import {
   Settings,
   Plus,
   Star,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useLanguage } from '../../lib/LanguageContext';
+import { useAuth } from '../../lib/AuthContext';
 
 interface HeaderProps {
   activeTab: string;
@@ -21,6 +24,19 @@ interface HeaderProps {
 
 export default function Header({ activeTab, setActiveTab, tournamentType, setTournamentType, isPremium }: HeaderProps) {
   const { t } = useLanguage();
+  const { user, isAuthenticated, isAdmin, isCoach, logout } = useAuth();
+
+  const navItems = [
+    {id: 'stats', label: t('nav.leaderboard'), icon: Trophy},
+    {id: 'standings', label: t('nav.standings'), icon: Users},
+    {id: 'schedule', label: t('nav.schedule'), icon: Calendar},
+    {id: 'media', label: t('nav.media'), icon: ImageIcon},
+    {id: 'live', label: t('nav.livestream'), icon: Play},
+    {id: 'register', label: t('nav.register'), icon: Plus},
+    // Only show Management if user is admin or coach
+    ...((isAdmin || isCoach) ? [{id: 'admin', label: t('nav.management'), icon: Settings}] : []),
+  ];
+
   return (
     <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl">
       <div className="w-full px-8 py-4 grid grid-cols-[auto_1fr_auto] items-center gap-6">
@@ -31,15 +47,7 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
 
         {/* Center: Nav links */}
         <nav className="hidden md:flex items-center justify-center gap-6">
-          {[
-            {id: 'stats', label: t('nav.leaderboard'), icon: Trophy},
-            {id: 'standings', label: t('nav.standings'), icon: Users},
-            {id: 'schedule', label: t('nav.schedule'), icon: Calendar},
-            {id: 'media', label: t('nav.media'), icon: ImageIcon},
-            {id: 'live', label: t('nav.livestream'), icon: Play},
-            {id: 'register', label: t('nav.register'), icon: Plus},
-            {id: 'admin', label: t('nav.management'), icon: Settings},
-          ].map((tab) => (
+          {navItems.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
@@ -54,7 +62,7 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
           ))}
         </nav>
 
-        {/* Right: Tournament toggle + Premium */}
+        {/* Right: Tournament toggle + Auth */}
         <div className="flex items-center gap-4">
           <div className="flex bg-zinc-900 p-1 rounded-full border border-zinc-800">
             <button 
@@ -86,9 +94,30 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
               {t('header.premium')}
             </button>
           )}
-          <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center overflow-hidden">
-            <img src="https://picsum.photos/seed/user/100/100" alt="User" referrerPolicy="no-referrer" />
-          </div>
+
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-xs font-bold text-white">{user?.firstName}</span>
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{user?.role}</span>
+              </div>
+              <button
+                onClick={logout}
+                className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center hover:border-red-500/50 transition-all group"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4 text-zinc-400 group-hover:text-red-400 transition-colors" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setActiveTab('login')}
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black rounded-full text-xs font-black uppercase tracking-widest hover:bg-yellow-400 transition-all"
+            >
+              <LogIn className="w-3 h-3" />
+              Sign In
+            </button>
+          )}
         </div>
       </div>
     </header>

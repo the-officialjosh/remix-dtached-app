@@ -1,16 +1,15 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { useAuth } from '../../lib/AuthContext';
 import type { Player, TeamStandings, Game } from '../../types';
-import ManagementAuth from '../admin/ManagementAuth';
 import TeamManagement from '../admin/TeamManagement';
 import PlayerManagement from '../admin/PlayerManagement';
 import StatsManagement from '../admin/StatsManagement';
 import GameManagement from '../admin/GameManagement';
 import CoachDashboard from '../admin/CoachDashboard';
+import { Shield, ShieldAlert } from 'lucide-react';
 
 interface AdminPageProps {
-  isAdmin: boolean;
-  setIsAdmin: (val: boolean) => void;
   adminSubTab: 'teams' | 'players' | 'stats' | 'matchups';
   setAdminSubTab: (tab: 'teams' | 'players' | 'stats' | 'matchups') => void;
   players: Player[];
@@ -20,10 +19,18 @@ interface AdminPageProps {
 }
 
 export default function AdminPage({
-  isAdmin, setIsAdmin, adminSubTab, setAdminSubTab, players, teams, games, onUpdate
+  adminSubTab, setAdminSubTab, players, teams, games, onUpdate
 }: AdminPageProps) {
-  if (!isAdmin) {
-    return <ManagementAuth onAuthorize={() => setIsAdmin(true)} />;
+  const { isAdmin, isCoach, user } = useAuth();
+
+  if (!isAdmin && !isCoach) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <ShieldAlert className="w-16 h-16 text-red-500/50 mb-4" />
+        <h2 className="text-2xl font-black text-white mb-2">Access Denied</h2>
+        <p className="text-zinc-500">You need Admin or Coach permissions to access this page.</p>
+      </div>
+    );
   }
 
   return (
@@ -31,8 +38,9 @@ export default function AdminPage({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">Management Console</h2>
-          <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-yellow-500/20">
-            Authorized Access
+          <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-yellow-500/20 inline-flex items-center gap-1">
+            <Shield className="w-3 h-3" />
+            {user?.role}
           </span>
         </div>
         <div className="flex gap-2 bg-zinc-900 p-1 rounded-full border border-zinc-800">
