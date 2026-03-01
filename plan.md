@@ -78,7 +78,7 @@ The core missing piece. Right now games are manually created one by one. A real 
 
 ---
 
-## 🟡 Phase C — Player & Team Profiles
+## 🟡 Phase C — Player & Team Profiles + Scouting
 
 ### C1. Rich Player Profile
 - Profile photo upload (actual file upload, not just URL)
@@ -87,7 +87,7 @@ The core missing piece. Right now games are manually created one by one. A real 
 - Combine results (40-yard dash, shuttle, vertical)
 - Awards / badges (MVP, All-Tournament, Most Improved)
 - Player rating / ranking system
-- Recruitment visibility toggle ("open to offers")
+- Player Card (digital ID — see Phase E3)
 
 ### C2. Rich Team Profile
 - Team logo upload
@@ -97,12 +97,42 @@ The core missing piece. Right now games are manually created one by one. A real 
 - Social media links
 - Team achievements / trophies
 
-### C3. Scouting / Recruitment
-- Coaches can "favorite" or "star" players
-- Saved searches with filters (position, age, city, stats)
-- Contact request (coach → player/parent, requires approval)
-- Scout notes (private, per coach)
-- Player comparison tool (side-by-side stats)
+### C3. Scouting & Matching System
+
+> This is the core "social" layer. Think dating-app-style matching for football.
+
+**How it works:**
+
+```
+1. Coach searches free agents (filter by position: QB, WR, etc.)
+2. Coach sees list of VERIFIED free agents only (paid $9.99)
+3. Coach "likes" / expresses interest in a player
+4. Player gets notified: "Team X is interested in you"
+5. Player can "like back" / express mutual interest
+6. If BOTH sides express interest → MATCH
+7. Admin reviews and APPROVES the match (not automatic)
+8. Once approved → player joins team roster
+```
+
+**Visibility rules:**
+- Only **free agents** appear in coach search (team players are invisible)
+- Only **verified** free agents (paid $9.99) appear in search
+- Unverified ($0 tier) players exist on the platform but are hidden from coaches
+- Coaches can filter by position, city, age, stats
+
+**Admin approval for matches:**
+- All mutual matches go through admin review queue
+- Admin verifies legitimacy (not bots, not fake, etc.)
+- Admin can reject with reason
+- Prevents auto-matching abuse
+
+### C4. Team Transfer Requests
+- Player on Team A wants to switch to Team B
+- Player submits transfer request with Team B's **invite code**
+- Team B coach must accept
+- Team A coach gets notified
+- Admin reviews and approves transfer
+- Player moves from Team A → Team B roster
 
 ---
 
