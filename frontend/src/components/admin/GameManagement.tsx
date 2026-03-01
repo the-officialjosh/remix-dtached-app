@@ -3,15 +3,32 @@ import { Plus, Save, Edit2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { TeamStandings, Game } from '../../types';
 
+const API = import.meta.env.VITE_API_URL || '/api';
+
 const GameManagement = ({ teams, games, onUpdate }: { teams: TeamStandings[]; games: Game[]; onUpdate: () => void }) => {
   const [editingGame, setEditingGame] = useState<Partial<Game> | null>(null);
+  const token = localStorage.getItem('token');
+
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/games', {
+    await fetch(`${API}/admin/games`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editingGame)
+      headers: authHeaders,
+      body: JSON.stringify({
+        id: editingGame?.id || null,
+        homeTeamId: editingGame?.home_team_id,
+        awayTeamId: editingGame?.away_team_id,
+        field: editingGame?.field,
+        type: editingGame?.type,
+        status: editingGame?.status,
+        homeScore: editingGame?.home_score || 0,
+        awayScore: editingGame?.away_score || 0,
+      })
     });
     setEditingGame(null);
     onUpdate();

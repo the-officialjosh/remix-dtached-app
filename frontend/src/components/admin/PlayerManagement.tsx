@@ -2,16 +2,34 @@ import React, { useState } from 'react';
 import { Plus, Save, Shield, Edit2 } from 'lucide-react';
 import type { Player, TeamStandings } from '../../types';
 
+const API = import.meta.env.VITE_API_URL || '/api';
+
 const PlayerManagement = ({ players, teams, onUpdate }: { players: Player[]; teams: TeamStandings[]; onUpdate: () => void }) => {
   const [editingPlayer, setEditingPlayer] = useState<Partial<Player> | null>(null);
+  const token = localStorage.getItem('token');
+
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/players', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editingPlayer)
-    });
+    if (!editingPlayer) return;
+
+    if (editingPlayer.id) {
+      // Update existing player via admin endpoint
+      await fetch(`${API}/admin/players/${editingPlayer.id}`, {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify({
+          firstName: editingPlayer.name?.split(' ')[0],
+          lastName: editingPlayer.name?.split(' ').slice(1).join(' '),
+          position: editingPlayer.position,
+          jerseyNumber: editingPlayer.number,
+        })
+      });
+    }
     setEditingPlayer(null);
     onUpdate();
   };
@@ -55,6 +73,11 @@ const PlayerManagement = ({ players, teams, onUpdate }: { players: Player[]; tea
               <option value="RB">RB</option>
               <option value="DB">DB</option>
               <option value="LB">LB</option>
+              <option value="TE">TE</option>
+              <option value="DL">DL</option>
+              <option value="OL">OL</option>
+              <option value="K">K</option>
+              <option value="ATH">ATH</option>
             </select>
             <select 
               className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-sm text-white"
@@ -82,16 +105,6 @@ const PlayerManagement = ({ players, teams, onUpdate }: { players: Player[]; tea
               <option value="Boy">Boy</option>
               <option value="Girl">Girl</option>
             </select>
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-xl p-3">
-              <input 
-                type="checkbox"
-                id="jersey_confirmed"
-                checked={editingPlayer.jersey_confirmed === 1}
-                onChange={e => setEditingPlayer({...editingPlayer, jersey_confirmed: e.target.checked ? 1 : 0})}
-                className="w-4 h-4 accent-yellow-500"
-              />
-              <label htmlFor="jersey_confirmed" className="text-sm text-zinc-400 cursor-pointer">Jersey Confirmed</label>
-            </div>
           </div>
           <div className="flex justify-end gap-3">
             <button type="button" onClick={() => setEditingPlayer(null)} className="px-6 py-2 text-zinc-500 font-bold text-xs uppercase">Cancel</button>

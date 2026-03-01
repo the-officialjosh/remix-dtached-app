@@ -2,22 +2,45 @@ import React, { useState } from 'react';
 import { Save } from 'lucide-react';
 import type { Player } from '../../types';
 
+const API = import.meta.env.VITE_API_URL || '/api';
+
 const StatsManagement = ({ players, onUpdate }: { players: Player[]; onUpdate: () => void }) => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | ''>('');
   const [stats, setStats] = useState({
-    yards: 0, touchdowns: 0, catches: 0, interceptions: 0, pass_yards: 0, pass_attempts: 0, pass_completions: 0, sacks: 0
+    totalYards: 0, totalTouchdowns: 0, totalCatches: 0, totalInterceptions: 0,
+    totalPassYards: 0, totalPassAttempts: 0, totalPassCompletions: 0, totalSacks: 0
   });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const token = localStorage.getItem('token');
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlayerId) return;
-    await fetch('/api/stats/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ player_id: selectedPlayerId, game_id: 1, ...stats })
-    });
-    setStats({ yards: 0, touchdowns: 0, catches: 0, interceptions: 0, pass_yards: 0, pass_attempts: 0, pass_completions: 0, sacks: 0 });
-    onUpdate();
+    setSaving(true);
+    setSaved(false);
+    try {
+      const res = await fetch(`${API}/admin/stats/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ playerId: selectedPlayerId, stats })
+      });
+      if (res.ok) {
+        setSaved(true);
+        setStats({ totalYards: 0, totalTouchdowns: 0, totalCatches: 0, totalInterceptions: 0, totalPassYards: 0, totalPassAttempts: 0, totalPassCompletions: 0, totalSacks: 0 });
+        onUpdate();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const statLabels: Record<string, string> = {
+    totalYards: 'Yards', totalTouchdowns: 'TDs', totalCatches: 'Catches', totalInterceptions: 'INTs',
+    totalPassYards: 'Pass Yds', totalPassAttempts: 'Pass Att', totalPassCompletions: 'Pass Comp', totalSacks: 'Sacks'
   };
 
   return (
@@ -37,7 +60,7 @@ const StatsManagement = ({ players, onUpdate }: { players: Player[]; onUpdate: (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries(stats).map(([key, val]) => (
             <div key={key}>
-              <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1 block">{key.replace('_', ' ')}</label>
+              <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1 block">{statLabels[key] || key}</label>
               <input 
                 type="number"
                 className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-sm text-white font-mono"
@@ -48,8 +71,12 @@ const StatsManagement = ({ players, onUpdate }: { players: Player[]; onUpdate: (
           ))}
         </div>
 
-        <button type="submit" className="w-full py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-xl hover:bg-yellow-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-          <Save className="w-5 h-5" /> Submit Stats Update
+        {saved && (
+          <div className="text-green-400 text-sm text-center">Stats updated successfully!</div>
+        )}
+
+        <button type="submit" disabled={saving} className="w-full py-4 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-xl hover:bg-yellow-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+          <Save className="w-5 h-5" /> {saving ? 'Updating...' : 'Submit Stats Update'}
         </button>
       </form>
     </div>
