@@ -91,6 +91,20 @@ public class SecurityConfig {
                     // Transfers
                     .requestMatchers(HttpMethod.POST, "/api/transfers").hasRole("PLAYER")
 
+                    // Events — public + admin/coach
+                    .requestMatchers(HttpMethod.GET, "/api/events/published").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/events/*").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/events").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/events").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/events/*").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/events/*").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/events/*/divisions").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/events/divisions/*").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/events/*/register").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.PUT, "/api/events/registrations/*/status").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/events/*/fields").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/events/fields/*").hasRole("ADMIN")
+
                     // Swagger / OpenAPI
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 

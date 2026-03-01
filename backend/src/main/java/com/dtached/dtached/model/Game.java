@@ -53,4 +53,18 @@ public class Game {
 
     @Column(name = "stream_url")
     private String streamUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private TournamentEvent event;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "division_id")
+    private EventDivision division;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "field_id")
+    private Field fieldEntity;
+
+    private String round;
 }

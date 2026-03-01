@@ -112,23 +112,23 @@
 ## Phase 5 — Tournament Operations
 
 ### 5.1 Event Entity & CRUD
-- [ ] `TournamentEvent` entity (name, date, location, deadline, format, status)
-- [ ] `Division` entity (linked to event, name, age group, max teams)
-- [ ] `EventRepository`, `DivisionRepository`
-- [ ] `EventService` — CRUD + validation
-- [ ] `EventController`: full CRUD endpoints
-- [ ] V8 migration: `events`, `divisions` tables
-- [ ] Admin dashboard: Events tab (create, edit, list events)
+- [x] `TournamentEvent` entity (name, date, location, deadline, format, status)
+- [x] `EventDivision` entity (linked to event, name, age group, max teams)
+- [x] `EventRepository`, `EventDivisionRepository`
+- [x] `EventService` — CRUD + validation
+- [x] `EventController`: full CRUD endpoints
+- [x] V10 migration: `tournament_events`, `event_divisions`, `event_registrations`, `fields` tables
+- [x] Admin dashboard: Events tab (create, edit, list events)
 
 ### 5.2 Event Registration
-- [ ] Link teams to events via `EventRegistration` entity
-- [ ] Coach submits roster for a specific event
-- [ ] Admin approves event registrations
-- [ ] Frontend: event list page, registration flow
+- [x] Link teams to events via `EventRegistration` entity
+- [x] Coach submits roster for a specific event
+- [x] Admin approves event registrations
+- [x] Frontend: event list page, registration flow
 
 ### 5.3 Improved Game Model
-- [ ] Link `Game` to `TournamentEvent` and `Division`
-- [ ] `Field` entity (name, GPS, capacity, condition)
+- [x] Link `Game` to `TournamentEvent` and `EventDivision`
+- [x] `Field` entity (name, GPS, capacity, condition)
 - [ ] Standings calculation from game results
 - [ ] Admin: improved game management within event context
 
