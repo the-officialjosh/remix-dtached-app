@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../lib/AuthContext';
+import { formatRole } from '../../lib/utils';
 import {
   Trophy,
   Users,
@@ -73,7 +74,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
         <div className="flex items-center gap-3 mt-2">
           <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-yellow-500/20 inline-flex items-center gap-1">
             <Shield className="w-3 h-3" />
-            {user?.role || 'Member'}
+            {formatRole(user?.role)}
           </span>
           <span className="text-sm text-zinc-500">{user?.email}</span>
         </div>

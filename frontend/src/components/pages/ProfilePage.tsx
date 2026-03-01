@@ -14,7 +14,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, formatRole } from '../../lib/utils';
 
 const POSITIONS = ['QB', 'WR', 'RB', 'TE', 'DB', 'LB', 'DL', 'OL', 'K', 'P', 'ATH'];
 
@@ -122,7 +122,7 @@ export default function ProfilePage() {
               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Role</label>
               <div className="flex items-center gap-2 px-4 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-sm text-zinc-400">
                 <Shield className="w-4 h-4 text-zinc-600" />
-                {user?.role || 'Not set'}
+                {formatRole(user?.role)}
               </div>
             </div>
           </div>

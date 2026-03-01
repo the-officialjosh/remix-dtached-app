@@ -14,7 +14,7 @@ import {
   LayoutDashboard,
   ChevronDown,
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, formatRole } from '../../lib/utils';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useAuth } from '../../lib/AuthContext';
 
@@ -130,7 +130,7 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
                 </div>
                 <div className="hidden sm:flex flex-col items-start">
                   <span className="text-xs font-bold text-white leading-tight">{user?.firstName}</span>
-                  <span className="text-[9px] text-zinc-500 uppercase tracking-wider leading-tight">{user?.role || 'Member'}</span>
+                  <span className="text-[9px] text-zinc-500 uppercase tracking-wider leading-tight">{formatRole(user?.role)}</span>
                 </div>
                 <ChevronDown className={cn("w-3 h-3 text-zinc-500 transition-transform", dropdownOpen && "rotate-180")} />
               </button>
@@ -143,7 +143,7 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
                     <p className="text-sm font-bold text-white">{user?.firstName} {user?.lastName}</p>
                     <p className="text-xs text-zinc-500 mt-0.5">{user?.email}</p>
                     <span className="inline-block mt-2 px-2 py-0.5 bg-yellow-500/10 text-yellow-500 text-[9px] font-black uppercase tracking-widest rounded-full border border-yellow-500/20">
-                      {user?.role || 'Member'}
+                      {formatRole(user?.role)}
                     </span>
                   </div>
 

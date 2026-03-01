@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../lib/utils';
+import { cn, formatRole } from '../../lib/utils';
 import { useAuth } from '../../lib/AuthContext';
 import type { Player, TeamStandings, Game } from '../../types';
 import TeamManagement from '../admin/TeamManagement';
@@ -40,7 +40,7 @@ export default function AdminPage({
           <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">Management Console</h2>
           <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-yellow-500/20 inline-flex items-center gap-1">
             <Shield className="w-3 h-3" />
-            {user?.role}
+            {formatRole(user?.role)}
           </span>
         </div>
         <div className="flex gap-2 bg-zinc-900 p-1 rounded-full border border-zinc-800">
