@@ -7,29 +7,29 @@
 ## Phase 1 — Stabilize Foundation
 
 ### 1.1 State Machine Completion
-- [ ] Add missing `PlayerStatus` values: `PENDING_JOIN`, `RELEASED`
-- [ ] Add missing `TeamStatus` values: `DRAFT`, `SUSPENDED`, `ARCHIVED`
-- [ ] Add `MatchStatus` enum: `COACH_INTERESTED`, `PLAYER_INTERESTED`, `MATCHED`, `APPROVED`, `REJECTED`, `EXPIRED`
-- [ ] Add `TransferStatus` enum: `REQUESTED`, `RECEIVING_ACCEPTED`, `PENDING_ADMIN`, `APPROVED`, `REJECTED`, `CANCELLED`
-- [ ] Migrate DB: new enum columns + V6 migration
+- [x] Add missing `PlayerStatus` values: `PENDING_JOIN`, `RELEASED`
+- [x] Add missing `TeamStatus` values: `DRAFT`, `SUSPENDED`, `ARCHIVED`
+- [x] Add `MatchStatus` enum: `COACH_INTERESTED`, `PLAYER_INTERESTED`, `MATCHED`, `APPROVED`, `REJECTED`, `EXPIRED`
+- [x] Add `TransferStatus` enum: `REQUESTED`, `RECEIVING_ACCEPTED`, `PENDING_ADMIN`, `APPROVED`, `REJECTED`, `CANCELLED`
+- [x] Migrate DB: new enum columns + V6 migration
 
 ### 1.2 Business Rule Enforcement
-- [ ] `MatchingService`: block unverified players from free agent market (`isVerified` check)
-- [ ] `PlayerController`: block player from self-removing from team (guard endpoint)
-- [ ] `PlayerController`: block team player from appearing in market search
-- [ ] `TransferService`: enforce rule that player cannot self-initiate (must go through coach/invite)
+- [x] `MatchingService`: block unverified players from free agent market (`isVerified` check)
+- [x] `PlayerService.getFreeAgents()`: only returns verified + openToOffers players
+- [x] `PlayerController`: block team player from appearing in market search
+- [x] `TransferService`: enforce rule that player cannot self-initiate (must go through coach/invite)
 
 ### 1.3 Password Reset
-- [ ] `PasswordResetToken` entity + repository
-- [ ] `AuthService.requestPasswordReset()` — generate token, console.log link (SendGrid later)
-- [ ] `AuthService.resetPassword()` — validate token, update password
-- [ ] `AuthController`: `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
+- [x] Password reset fields on `User` entity (token + expiry)
+- [x] `AuthService.requestPasswordReset()` — generate token, console.log link (SendGrid later)
+- [x] `AuthService.resetPassword()` — validate token, update password
+- [x] `AuthController`: `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
 - [ ] Frontend: forgot password page + reset password page
 
 ### 1.4 Profile Field Gaps
-- [ ] Player: add `bio`, `schoolClub`, `openToOffers`, `emergencyContact`, `emergencyPhone` columns
-- [ ] Team: add `bannerUrl`, `socialLinks` (JSON), `achievements` columns
-- [ ] V6 migration for new columns
+- [x] Player: add `bio`, `schoolClub`, `openToOffers`, `emergencyContact`, `emergencyPhone` columns
+- [x] Team: add `bannerUrl`, `socialLinks` (JSON), `achievements` columns
+- [x] V6 migration for new columns
 - [ ] Update DTOs + registration forms
 
 ---
