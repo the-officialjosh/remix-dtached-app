@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -31,5 +33,27 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> getCurrentUser(Authentication authentication) {
         return ResponseEntity.ok(authService.getCurrentUser(authentication.getName()));
+    }
+
+    @GetMapping("/confirm")
+    public ResponseEntity<AuthResponse> confirmEmail(@RequestParam String token) {
+        return ResponseEntity.ok(authService.confirmEmail(token));
+    }
+
+    @PostMapping("/select-role")
+    public ResponseEntity<AuthResponse> selectRole(
+            Authentication authentication,
+            @RequestBody Map<String, String> body
+    ) {
+        String role = body.get("role");
+        if (role == null || role.isBlank()) {
+            throw new IllegalArgumentException("Role is required");
+        }
+        return ResponseEntity.ok(authService.selectRole(authentication.getName(), role));
+    }
+
+    @PostMapping("/resend-confirmation")
+    public ResponseEntity<AuthResponse> resendConfirmation(Authentication authentication) {
+        return ResponseEntity.ok(authService.resendConfirmation(authentication.getName()));
     }
 }

@@ -40,21 +40,21 @@ public class DataSeeder implements CommandLineRunner {
         // --- Users (coaches) ---
         User coach1 = userRepository.save(User.builder()
                 .email("coach.carter@dtached.com").passwordHash(passwordEncoder.encode("password"))
-                .firstName("Coach").lastName("Carter").role(UserRole.COACH).build());
+                .firstName("Coach").lastName("Carter").role(UserRole.COACH).emailConfirmed(true).build());
         User coach2 = userRepository.save(User.builder()
                 .email("coach.prime@dtached.com").passwordHash(passwordEncoder.encode("password"))
-                .firstName("Coach").lastName("Prime").role(UserRole.COACH).build());
+                .firstName("Coach").lastName("Prime").role(UserRole.COACH).emailConfirmed(true).build());
         User coach3 = userRepository.save(User.builder()
                 .email("coach.sarah@dtached.com").passwordHash(passwordEncoder.encode("password"))
-                .firstName("Coach").lastName("Sarah").role(UserRole.COACH).build());
+                .firstName("Coach").lastName("Sarah").role(UserRole.COACH).emailConfirmed(true).build());
         User coach4 = userRepository.save(User.builder()
                 .email("coach.kelly@dtached.com").passwordHash(passwordEncoder.encode("password"))
-                .firstName("Coach").lastName("Kelly").role(UserRole.COACH).build());
+                .firstName("Coach").lastName("Kelly").role(UserRole.COACH).emailConfirmed(true).build());
 
         // --- Admin user ---
         userRepository.save(User.builder()
                 .email("admin@dtached.com").passwordHash(passwordEncoder.encode("admin123"))
-                .firstName("Admin").lastName("Dtached").role(UserRole.ADMIN).build());
+                .firstName("Admin").lastName("Dtached").role(UserRole.ADMIN).emailConfirmed(true).build());
 
         // --- Teams ---
         Team titans = teamRepository.save(Team.builder()

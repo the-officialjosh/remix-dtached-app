@@ -24,8 +24,5 @@ public class RegisterRequest {
     @NotBlank(message = "Last name is required")
     private String lastName;
 
-    @NotBlank(message = "Role is required")
-    private String role;  // PLAYER, COACH, TEAM_MANAGER
-
-    private String inviteCode;  // Optional — auto-joins team if valid
+    // Role is no longer required at registration — selected post-login
 }

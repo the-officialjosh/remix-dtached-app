@@ -3,9 +3,11 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 interface User {
   userId: number;
   email: string;
-  role: string;
+  role: string | null;
   firstName: string;
   lastName: string;
+  emailConfirmed: boolean;
+  needsRole: boolean;
 }
 
 interface AuthContextType {
@@ -16,6 +18,8 @@ interface AuthContextType {
   isCoach: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  selectRole: (role: string) => Promise<void>;
+  resendConfirmation: () => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -25,29 +29,19 @@ interface RegisterData {
   password: string;
   firstName: string;
   lastName: string;
-  role: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
-// Helper: make authenticated API calls with auto-logout on 401
-async function authFetch(url: string, token: string | null, options: RequestInit = {}): Promise<Response> {
-  const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string> || {}),
-  };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
-  const res = await fetch(url, { ...options, headers });
-  return res;
-}
 
 function parseUser(data: any): User {
   return {
     userId: data.user_id ?? data.userId,
     email: data.email,
-    role: data.role,
+    role: data.role ?? null,
     firstName: data.first_name ?? data.firstName,
     lastName: data.last_name ?? data.lastName,
+    emailConfirmed: data.email_confirmed ?? data.emailConfirmed ?? false,
+    needsRole: data.needs_role ?? data.needsRole ?? false,
   };
 }
 
@@ -69,10 +63,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    authFetch('/api/auth/me', token)
+    fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => {
         if (res.status === 401 || res.status === 403) {
-          // Token expired or invalid
           logout();
           throw new Error('Token expired');
         }
@@ -111,7 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password: regData.password,
         first_name: regData.firstName.trim(),
         last_name: regData.lastName.trim(),
-        role: regData.role,
       }),
     });
 
@@ -126,6 +120,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(parseUser(data));
   };
 
+  const selectRole = async (role: string) => {
+    if (!token) throw new Error('Not authenticated');
+
+    const res = await fetch('/api/auth/select-role', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ role }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Role selection failed' }));
+      throw new Error(err.message || 'Role selection failed');
+    }
+
+    const data = await res.json();
+    // Update token with new role
+    if (data.token) {
+      localStorage.setItem('dtached_token', data.token);
+      setToken(data.token);
+    }
+    setUser(parseUser(data));
+  };
+
+  const resendConfirmation = async () => {
+    if (!token) throw new Error('Not authenticated');
+
+    const res = await fetch('/api/auth/resend-confirmation', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Failed to resend' }));
+      throw new Error(err.message || 'Failed to resend confirmation');
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -136,6 +170,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isCoach: user?.role === 'COACH' || user?.role === 'TEAM_MANAGER',
         login,
         register,
+        selectRole,
+        resendConfirmation,
         logout,
         loading,
       }}

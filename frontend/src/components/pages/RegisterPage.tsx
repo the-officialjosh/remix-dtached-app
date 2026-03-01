@@ -1,18 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../lib/AuthContext';
-import { UserPlus, LogIn, Mail, Lock, User, AlertCircle, Shield } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { UserPlus, LogIn, Mail, Lock, User, AlertCircle } from 'lucide-react';
 
 interface RegisterPageProps {
   onSwitchToLogin: () => void;
 }
-
-const ROLES = [
-  { id: 'PLAYER', label: 'Player', desc: 'Join a team and compete' },
-  { id: 'COACH', label: 'Coach', desc: 'Manage and coach a team' },
-  { id: 'TEAM_MANAGER', label: 'Team Manager', desc: 'Handle team operations' },
-];
 
 export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
   const { register } = useAuth();
@@ -21,7 +14,6 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
     password: '',
     firstName: '',
     lastName: '',
-    role: 'PLAYER',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,6 +24,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
     setLoading(true);
     try {
       await register(form);
+      // After register → AuthContext redirects to role selection / confirmation
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -121,31 +114,6 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                 required
                 minLength={6}
               />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">
-              <Shield className="w-3 h-3 inline mr-1" />
-              Role
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {ROLES.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => update('role', r.id)}
-                  className={cn(
-                    'px-3 py-3 rounded-xl border text-center transition-all',
-                    form.role === r.id
-                      ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-500'
-                      : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
-                  )}
-                >
-                  <div className="text-xs font-bold">{r.label}</div>
-                  <div className="text-[10px] mt-1 opacity-60">{r.desc}</div>
-                </button>
-              ))}
             </div>
           </div>
 

@@ -24,6 +24,8 @@ import LivePage from './components/pages/LivePage';
 import AdminPage from './components/pages/AdminPage';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
+import RoleSelectionPage from './components/pages/RoleSelectionPage';
+import DashboardPage from './components/pages/DashboardPage';
 
 // --- Feature Components ---
 import TeamModal from './components/team/TeamModal';
@@ -31,8 +33,8 @@ import PlayerProfileModal from './components/player/PlayerProfileModal';
 import PlayerRegistration from './components/registration/PlayerRegistration';
 
 function AppContent() {
-  const { isAuthenticated, isAdmin, isCoach } = useAuth();
-  const [activeTab, setActiveTab] = useState<'home' | 'stats' | 'standings' | 'schedule' | 'media' | 'live' | 'admin' | 'register' | 'login' | 'signup'>('home');
+  const { isAuthenticated, isAdmin, isCoach, user } = useAuth();
+  const [activeTab, setActiveTab] = useState<string>('home');
   const [adminSubTab, setAdminSubTab] = useState<'teams' | 'players' | 'stats' | 'matchups'>('teams');
   const [tournamentType, setTournamentType] = useState<'7v7' | 'Flag'>('7v7');
   const [players, setPlayers] = useState<Player[]>([]);
@@ -62,12 +64,23 @@ function AppContent() {
     loadData();
   }, [loadData]);
 
-  // Redirect to home after login
+  // After login: redirect to dashboard (or role selection if needed)
   useEffect(() => {
     if (isAuthenticated && (activeTab === 'login' || activeTab === 'signup')) {
-      setActiveTab('home');
+      if (user?.needsRole) {
+        setActiveTab('role-select');
+      } else {
+        setActiveTab('dashboard');
+      }
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated, activeTab, user?.needsRole]);
+
+  // After role selection: go to dashboard
+  useEffect(() => {
+    if (isAuthenticated && user && !user.needsRole && activeTab === 'role-select') {
+      setActiveTab('dashboard');
+    }
+  }, [isAuthenticated, user, activeTab]);
 
   const addNotification = (msg: string) => {
     const id = Date.now();
@@ -92,6 +105,9 @@ function AppContent() {
     </div>
   );
 
+  // Intercept: if logged in but needs role, force role selection
+  const showRoleSelection = isAuthenticated && user?.needsRole;
+
   return (
     <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-yellow-500 selection:text-black">
       <LanguagePicker />
@@ -105,96 +121,111 @@ function AppContent() {
 
       <main className="max-w-7xl mx-auto px-4 py-12">
         <AnimatePresence mode="wait">
-          {activeTab === 'home' && (
-            <motion.div key="home" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <HomePage
-                players={players}
-                teams={teams}
-                expandedCategories={expandedCategories}
-                toggleCategory={toggleCategory}
-                onPlayerClick={setSelectedPlayer}
-                onTeamClick={setSelectedTeam}
-                onRegister={(eventType) => {
-                  setInitialEventType(eventType);
-                  setActiveTab('register');
-                }}
-              />
+          {/* Force role selection if needed */}
+          {showRoleSelection ? (
+            <motion.div key="role-select" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <RoleSelectionPage />
             </motion.div>
-          )}
+          ) : (
+            <>
+              {activeTab === 'home' && (
+                <motion.div key="home" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <HomePage
+                    players={players}
+                    teams={teams}
+                    expandedCategories={expandedCategories}
+                    toggleCategory={toggleCategory}
+                    onPlayerClick={setSelectedPlayer}
+                    onTeamClick={setSelectedTeam}
+                    onRegister={(eventType) => {
+                      setInitialEventType(eventType);
+                      setActiveTab('register');
+                    }}
+                  />
+                </motion.div>
+              )}
 
-          {activeTab === 'stats' && (
-            <motion.div key="stats" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <LeaderboardPage
-                players={players}
-                teams={teams}
-                expandedCategories={expandedCategories}
-                toggleCategory={toggleCategory}
-                onPlayerClick={setSelectedPlayer}
-                onTeamClick={setSelectedTeam}
-              />
-            </motion.div>
-          )}
+              {activeTab === 'dashboard' && (
+                <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <DashboardPage onNavigate={(tab) => setActiveTab(tab)} />
+                </motion.div>
+              )}
 
-          {activeTab === 'standings' && (
-            <motion.div key="standings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <StandingsPage teams={teams} onTeamClick={setSelectedTeam} />
-            </motion.div>
-          )}
+              {activeTab === 'stats' && (
+                <motion.div key="stats" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                  <LeaderboardPage
+                    players={players}
+                    teams={teams}
+                    expandedCategories={expandedCategories}
+                    toggleCategory={toggleCategory}
+                    onPlayerClick={setSelectedPlayer}
+                    onTeamClick={setSelectedTeam}
+                  />
+                </motion.div>
+              )}
 
-          {activeTab === 'admin' && (
-            <motion.div key="admin" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
-              <AdminPage
-                adminSubTab={adminSubTab}
-                setAdminSubTab={setAdminSubTab}
-                players={players}
-                teams={teams}
-                games={games}
-                onUpdate={loadData}
-              />
-            </motion.div>
-          )}
+              {activeTab === 'standings' && (
+                <motion.div key="standings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <StandingsPage teams={teams} onTeamClick={setSelectedTeam} />
+                </motion.div>
+              )}
 
-          {activeTab === 'register' && (
-            <motion.div key={`register-${initialEventType || 'none'}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <PlayerRegistration
-                initialEventType={initialEventType}
-                onComplete={() => {
-                  setActiveTab('stats');
-                  setInitialEventType(undefined);
-                  loadData();
-                }}
-              />
-            </motion.div>
-          )}
+              {activeTab === 'admin' && (
+                <motion.div key="admin" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+                  <AdminPage
+                    adminSubTab={adminSubTab}
+                    setAdminSubTab={setAdminSubTab}
+                    players={players}
+                    teams={teams}
+                    games={games}
+                    onUpdate={loadData}
+                  />
+                </motion.div>
+              )}
 
-          {activeTab === 'schedule' && (
-            <motion.div key="schedule" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <SchedulePage games={games} tournamentType={tournamentType} />
-            </motion.div>
-          )}
+              {activeTab === 'register' && (
+                <motion.div key={`register-${initialEventType || 'none'}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <PlayerRegistration
+                    initialEventType={initialEventType}
+                    onComplete={() => {
+                      setActiveTab('stats');
+                      setInitialEventType(undefined);
+                      loadData();
+                    }}
+                  />
+                </motion.div>
+              )}
 
-          {activeTab === 'media' && (
-            <motion.div key="media" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <MediaPage isPremium={isPremium} onUnlock={() => setIsPremium(true)} />
-            </motion.div>
-          )}
+              {activeTab === 'schedule' && (
+                <motion.div key="schedule" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <SchedulePage games={games} tournamentType={tournamentType} />
+                </motion.div>
+              )}
 
-          {activeTab === 'live' && (
-            <motion.div key="live" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }}>
-              <LivePage games={games} tournamentType={tournamentType} />
-            </motion.div>
-          )}
+              {activeTab === 'media' && (
+                <motion.div key="media" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <MediaPage isPremium={isPremium} onUnlock={() => setIsPremium(true)} />
+                </motion.div>
+              )}
 
-          {activeTab === 'login' && (
-            <motion.div key="login" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <LoginPage onSwitchToRegister={() => setActiveTab('signup')} />
-            </motion.div>
-          )}
+              {activeTab === 'live' && (
+                <motion.div key="live" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }}>
+                  <LivePage games={games} tournamentType={tournamentType} />
+                </motion.div>
+              )}
 
-          {activeTab === 'signup' && (
-            <motion.div key="signup" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <RegisterPage onSwitchToLogin={() => setActiveTab('login')} />
-            </motion.div>
+              {activeTab === 'login' && (
+                <motion.div key="login" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <LoginPage onSwitchToRegister={() => setActiveTab('signup')} />
+                </motion.div>
+              )}
+
+              {activeTab === 'signup' && (
+                <motion.div key="signup" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <RegisterPage onSwitchToLogin={() => setActiveTab('login')} />
+                </motion.div>
+              )}
+            </>
           )}
         </AnimatePresence>
       </main>
@@ -205,9 +236,9 @@ function AppContent() {
       {/* Team Modal */}
       <AnimatePresence>
         {selectedTeam && (
-          <TeamModal 
-            team={selectedTeam} 
-            onClose={() => setSelectedTeam(null)} 
+          <TeamModal
+            team={selectedTeam}
+            onClose={() => setSelectedTeam(null)}
             onPlayerClick={(p) => {
               setSelectedTeam(null);
               setSelectedPlayer(p);
@@ -219,9 +250,9 @@ function AppContent() {
       {/* Player Profile Modal */}
       <AnimatePresence>
         {selectedPlayer && (
-          <PlayerProfileModal 
-            player={selectedPlayer} 
-            onClose={() => setSelectedPlayer(null)} 
+          <PlayerProfileModal
+            player={selectedPlayer}
+            onClose={() => setSelectedPlayer(null)}
             isPremium={isPremium}
             onUnlock={() => {
               setIsPremium(true);

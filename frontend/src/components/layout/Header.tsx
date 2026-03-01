@@ -27,13 +27,14 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
   const { user, isAuthenticated, isAdmin, isCoach, logout } = useAuth();
 
   const navItems = [
+    // Dashboard for logged-in users
+    ...(isAuthenticated ? [{id: 'dashboard', label: 'Dashboard', icon: LogIn}] : []),
     {id: 'stats', label: t('nav.leaderboard'), icon: Trophy},
     {id: 'standings', label: t('nav.standings'), icon: Users},
     {id: 'schedule', label: t('nav.schedule'), icon: Calendar},
     {id: 'media', label: t('nav.media'), icon: ImageIcon},
     {id: 'live', label: t('nav.livestream'), icon: Play},
     {id: 'register', label: t('nav.register'), icon: Plus},
-    // Only show Management if user is admin or coach
     ...((isAdmin || isCoach) ? [{id: 'admin', label: t('nav.management'), icon: Settings}] : []),
   ];
 
