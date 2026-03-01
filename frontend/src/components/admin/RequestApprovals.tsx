@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, UserPlus, ArrowRight, RefreshCw } from 'lucide-re
 import { API_URL as API } from '../../lib/api';
 
 export default function RequestApprovals() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

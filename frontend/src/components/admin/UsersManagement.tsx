@@ -7,7 +7,7 @@ export default function UsersManagement() {
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
 
   const loadUsers = () => {
     let url = `${API}/admin/users`;

@@ -6,7 +6,7 @@ const STATUSES = ['', 'ON_TEAM', 'FREE_AGENT', 'PENDING_TRANSFER', 'PENDING_MATC
 const POSITIONS = ['', 'QB', 'WR', 'RB', 'TE', 'DB', 'LB', 'DL', 'OL', 'K', 'ATH'];
 
 export default function PlayerDirectory() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const [players, setPlayers] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [positionFilter, setPositionFilter] = useState('');

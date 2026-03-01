@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function StaffPanel({ games, onUpdate }: Props) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const authHeaders = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,

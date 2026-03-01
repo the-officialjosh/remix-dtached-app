@@ -33,7 +33,7 @@ export default function AdminPage({
 }: AdminPageProps) {
   const { isAdmin, isCoach, user } = useAuth();
   const [dashStats, setDashStats] = useState<any>(null);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const currentTab = adminSubTab as SubTab;
 
   useEffect(() => {

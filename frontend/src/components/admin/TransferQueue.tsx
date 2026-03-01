@@ -5,7 +5,7 @@ import { API_URL as API } from '../../lib/api';
 export default function TransferQueue() {
   const [transfers, setTransfers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
 
   useEffect(() => {
     fetch(`${API}/admin/transfers`, { headers: { Authorization: `Bearer ${token}` } })

@@ -14,7 +14,7 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
   const [teamLoading, setTeamLoading] = useState(true);
   const [interests, setInterests] = useState<any[]>([]);
   const [removeConfirm, setRemoveConfirm] = useState<number | null>(null);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
 
   // Invites state
   const [invites, setInvites] = useState<any[]>([]);
@@ -533,7 +533,7 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
 
 // Helper — kept inside the component scope but needs to be callable
 const sendRequestToPlayer = async (playerId: number) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   await fetch(`${API}/team-requests/${playerId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

@@ -5,7 +5,7 @@ import { API_URL as API } from '../../lib/api';
 
 export default function PlayerDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const { user } = useAuth();
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const [player, setPlayer] = useState<any>(null);
   const [requests, setRequests] = useState<any[]>([]);
   const [interests, setInterests] = useState<any[]>([]);

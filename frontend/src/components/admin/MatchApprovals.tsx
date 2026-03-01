@@ -3,7 +3,7 @@ import { Heart, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { API_URL as API } from '../../lib/api';
 
 export default function MatchApprovals() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -23,7 +23,7 @@ const POSITIONS = ['QB', 'WR', 'RB', 'TE', 'DB', 'LB', 'DL', 'OL', 'K', 'P', 'AT
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
 
   const [form, setForm] = useState({
     firstName: user?.firstName || '',

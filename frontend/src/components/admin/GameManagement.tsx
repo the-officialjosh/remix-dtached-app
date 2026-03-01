@@ -6,7 +6,7 @@ import { API_URL as API } from '../../lib/api';
 
 const GameManagement = ({ teams, games, onUpdate }: { teams: TeamStandings[]; games: Game[]; onUpdate: () => void }) => {
   const [editingGame, setEditingGame] = useState<Partial<Game> | null>(null);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
 
   const authHeaders = {
     'Content-Type': 'application/json',

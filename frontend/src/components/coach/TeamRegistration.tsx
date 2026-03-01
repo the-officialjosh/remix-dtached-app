@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function TeamRegistration({ onComplete }: Props) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const [form, setForm] = useState({
     name: '',
     type: '7v7' as '7v7' | 'Flag',

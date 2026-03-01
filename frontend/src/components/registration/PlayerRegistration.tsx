@@ -9,7 +9,7 @@ import { API_URL as API } from '../../lib/api';
 const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () => void; initialEventType?: 'camp' | 'tournament' }) => {
   const { t } = useLanguage();
   const { user, isAuthenticated } = useAuth();
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
   const [step, setStep] = useState(initialEventType ? 2 : 1);
   const [formData, setFormData] = useState({
     event_type: (initialEventType || '') as '' | 'camp' | 'tournament',

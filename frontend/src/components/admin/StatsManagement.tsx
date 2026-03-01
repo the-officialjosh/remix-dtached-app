@@ -11,7 +11,7 @@ const StatsManagement = ({ players, onUpdate }: { players: Player[]; onUpdate: (
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();

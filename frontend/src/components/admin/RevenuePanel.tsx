@@ -7,7 +7,7 @@ export default function RevenuePanel() {
   const [payments, setPayments] = useState<any[]>([]);
   const [typeFilter, setTypeFilter] = useState('');
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('dtached_token');
 
   useEffect(() => {
     Promise.all([
