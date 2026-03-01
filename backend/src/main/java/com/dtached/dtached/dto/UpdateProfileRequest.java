@@ -17,4 +17,6 @@ public class UpdateProfileRequest {
     private String province;
     private Integer jerseyNumber;
     private String bio;
+    private String dob;
+    private String gender;
 }

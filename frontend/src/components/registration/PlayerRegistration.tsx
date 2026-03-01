@@ -1,11 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Shield, Play, Trophy, Tent } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useLanguage } from '../../lib/LanguageContext';
+import { useAuth } from '../../lib/AuthContext';
+import { API_URL as API } from '../../lib/api';
 
 const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () => void; initialEventType?: 'camp' | 'tournament' }) => {
   const { t } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
+  const token = localStorage.getItem('token');
   const [step, setStep] = useState(initialEventType ? 2 : 1);
   const [formData, setFormData] = useState({
     event_type: (initialEventType || '') as '' | 'camp' | 'tournament',
@@ -20,6 +24,29 @@ const PlayerRegistration = ({ onComplete, initialEventType }: { onComplete: () =
   const videoInputRef = useRef<HTMLInputElement>(null);
   const profilePhotoRef = useRef<HTMLInputElement>(null);
   const playerPhotoRef = useRef<HTMLInputElement>(null);
+
+  // Autofill from profile if logged in
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+    fetch(`${API}/my/profile`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setFormData(prev => ({
+          ...prev,
+          first_name: prev.first_name || data.firstName || '',
+          last_name: prev.last_name || data.lastName || '',
+          position: prev.position || data.position || '',
+          height: prev.height || data.height || '',
+          weight: prev.weight || data.weight || '',
+          city: prev.city || data.city || '',
+          province_state: prev.province_state || data.province || '',
+          dob: prev.dob || data.dob || '',
+          gender: prev.gender || data.gender || '',
+        }));
+      })
+      .catch(() => {});
+  }, [isAuthenticated, token]);
 
   const handleRegister = async () => {
     const res = await fetch('/api/players/register', {

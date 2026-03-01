@@ -207,18 +207,7 @@ function AppContent() {
                 </motion.div>
               )}
 
-              {activeTab === 'admin' && (
-                <motion.div key="admin" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
-                  <AdminPage
-                    adminSubTab={adminSubTab}
-                    setAdminSubTab={setAdminSubTab}
-                    players={players}
-                    teams={teams}
-                    games={games}
-                    onUpdate={loadData}
-                  />
-                </motion.div>
-              )}
+
 
               {activeTab === 'register' && (
                 <motion.div key={`register-${initialEventType || 'none'}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>

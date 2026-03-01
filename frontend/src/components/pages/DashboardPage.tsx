@@ -106,7 +106,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
       {/* Player-specific dashboard */}
       {isPlayer && (
         <div className="mt-4">
-          <PlayerDashboard />
+          <PlayerDashboard onNavigate={onNavigate} />
         </div>
       )}
 

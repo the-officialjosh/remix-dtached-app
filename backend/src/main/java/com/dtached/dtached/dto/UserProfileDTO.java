@@ -25,4 +25,8 @@ public class UserProfileDTO {
     private String bio;
     private String status;
     private String teamName;
+    private String dob;
+    private String gender;
+    private Boolean isVerified;
+    private Boolean hasPlayerProfile;
 }

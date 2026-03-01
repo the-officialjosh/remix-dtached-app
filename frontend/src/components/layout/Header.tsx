@@ -49,7 +49,7 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
     {id: 'schedule', label: t('nav.schedule'), icon: Calendar},
     {id: 'media', label: t('nav.media'), icon: ImageIcon},
     {id: 'live', label: t('nav.livestream'), icon: Play},
-    {id: 'register', label: t('nav.register'), icon: Plus},
+    {id: 'register', label: 'Events', icon: Plus},
   ];
 
   const handleDropdownNav = (tab: string) => {

@@ -3,7 +3,7 @@ import { Users, UserPlus, Shield, Mail, CheckCircle, XCircle, Ticket, Heart, Eye
 import { useAuth } from '../../lib/AuthContext';
 import { API_URL as API } from '../../lib/api';
 
-export default function PlayerDashboard() {
+export default function PlayerDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
   const [player, setPlayer] = useState<any>(null);
@@ -114,10 +114,18 @@ export default function PlayerDashboard() {
 
   if (!player) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-12 text-center">
-        <UserPlus className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
-        <h3 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">No Player Profile</h3>
-        <p className="text-zinc-500 mb-6">Register as a player to get started with teams and events.</p>
+      <div className="bg-gradient-to-br from-yellow-500/5 to-amber-500/5 border border-yellow-500/20 rounded-3xl p-12 text-center">
+        <div className="w-20 h-20 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mx-auto mb-5">
+          <UserPlus className="w-10 h-10 text-yellow-500" />
+        </div>
+        <h3 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">Complete Your Profile</h3>
+        <p className="text-zinc-400 mb-6 max-w-md mx-auto">Set up your player profile to appear on the free agent market, get matched with teams, and join events.</p>
+        <button
+          onClick={() => onNavigate?.('profile')}
+          className="px-6 py-3 bg-yellow-500 text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-yellow-400 transition-all"
+        >
+          Set Up Profile
+        </button>
       </div>
     );
   }

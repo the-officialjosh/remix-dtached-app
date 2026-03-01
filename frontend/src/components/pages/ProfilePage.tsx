@@ -13,6 +13,8 @@ import {
   Hash,
   AlertCircle,
   CheckCircle,
+  Calendar,
+  Users,
 } from 'lucide-react';
 import { cn, formatRole } from '../../lib/utils';
 import { API_URL as API } from '../../lib/api';
@@ -33,6 +35,8 @@ export default function ProfilePage() {
     province: '',
     jerseyNumber: '',
     bio: '',
+    dob: '',
+    gender: '',
   });
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -59,6 +63,8 @@ export default function ProfilePage() {
             province: data.province || '',
             jerseyNumber: data.jersey_number?.toString() || data.jerseyNumber?.toString() || '',
             bio: data.bio || '',
+            dob: data.dob || '',
+            gender: data.gender || '',
           });
           if (data.photo_url || data.photoUrl) {
             setPhotoPreview(data.photo_url || data.photoUrl);
@@ -108,6 +114,8 @@ export default function ProfilePage() {
           province: form.province || null,
           jerseyNumber: form.jerseyNumber ? parseInt(form.jerseyNumber) : null,
           photoUrl: photoPreview || null,
+          dob: form.dob || null,
+          gender: form.gender || null,
         }),
       });
       if (!res.ok) {
@@ -321,6 +329,43 @@ export default function ProfilePage() {
               className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white text-sm placeholder-zinc-600 focus:border-yellow-500/50 focus:outline-none transition-colors resize-none"
               placeholder="Tell us about yourself..."
             />
+          </div>
+
+          {/* DOB & Gender */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Date of Birth</label>
+              <div className="relative">
+                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <input
+                  type="date"
+                  value={form.dob}
+                  onChange={(e) => update('dob', e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white text-sm focus:border-yellow-500/50 focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Gender</label>
+              <div className="flex gap-2">
+                {['Boy', 'Girl'].map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => update('gender', g)}
+                    className={cn(
+                      'flex-1 py-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1',
+                      form.gender === g
+                        ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-500'
+                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                    )}
+                  >
+                    <Users className="w-3 h-3" />
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
