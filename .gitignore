@@ -1,8 +1,16 @@
-node_modules/
-build/
-dist/
-coverage/
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Backend
+backend/target/
+backend/.mvn/
+backend/*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
 .DS_Store
-*.log
-.env*
-!.env.example
