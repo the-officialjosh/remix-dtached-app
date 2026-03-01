@@ -110,4 +110,16 @@ public class CoachController {
         teamRequestService.rejectRequest(auth.getName(), id);
         return ResponseEntity.ok(Map.of("message", "Request rejected"));
     }
+
+    // ---- Player release ----
+
+    @DeleteMapping("/api/my/team/players/{playerId}")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> releasePlayer(
+            Authentication auth,
+            @PathVariable Long playerId
+    ) {
+        playerService.releasePlayer(auth.getName(), playerId);
+        return ResponseEntity.ok(Map.of("message", "Player released from roster"));
+    }
 }

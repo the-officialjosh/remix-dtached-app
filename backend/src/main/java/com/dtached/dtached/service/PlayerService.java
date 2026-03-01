@@ -5,9 +5,11 @@ import com.dtached.dtached.dto.PlayerRegistrationRequest;
 import com.dtached.dtached.dto.PlayerSummaryDTO;
 import com.dtached.dtached.mapper.PlayerMapper;
 import com.dtached.dtached.model.Player;
+import com.dtached.dtached.model.ReleaseRecord;
 import com.dtached.dtached.model.Team;
 import com.dtached.dtached.model.User;
 import com.dtached.dtached.repository.PlayerRepository;
+import com.dtached.dtached.repository.ReleaseRecordRepository;
 import com.dtached.dtached.repository.TeamRepository;
 import com.dtached.dtached.repository.TeamRequestRepository;
 import com.dtached.dtached.repository.UserRepository;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final ReleaseRecordRepository releaseRecordRepository;
     private final PlayerMapper playerMapper;
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
@@ -167,5 +170,40 @@ public class PlayerService {
         player.setOpenToOffers(newState);
         playerRepository.save(player);
         return newState;
+    }
+
+    /**
+     * Release a player from the coach's team.
+     * Creates an audit record and resets player state.
+     */
+    @Transactional
+    public void releasePlayer(String coachEmail, Long playerId) {
+        User coach = userRepository.findByEmail(coachEmail)
+                .orElseThrow(() -> new RuntimeException("Coach user not found"));
+
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        if (player.getTeam() == null) {
+            throw new IllegalStateException("Player is not on any team");
+        }
+
+        // Create audit record
+        ReleaseRecord record = ReleaseRecord.builder()
+                .playerId(player.getId())
+                .playerName(player.getFirstName() + " " + player.getLastName())
+                .teamId(player.getTeam().getId())
+                .teamName(player.getTeam().getName())
+                .releasedByUserId(coach.getId())
+                .releasedByName(coach.getFirstName() + " " + coach.getLastName())
+                .reason("COACH_RELEASE")
+                .build();
+        releaseRecordRepository.save(record);
+
+        // Reset player state
+        player.setTeam(null);
+        player.setStatus("RELEASED");
+        player.setOpenToOffers(false);
+        playerRepository.save(player);
     }
 }
