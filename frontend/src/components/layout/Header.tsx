@@ -106,15 +106,6 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
             </button>
           </div>
 
-          {!isPremium && (
-            <button 
-              onClick={() => setActiveTab('media')}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-xs font-bold text-white hover:border-yellow-500/50 transition-all"
-            >
-              <Star className="w-3 h-3 text-yellow-500 fill-current" />
-              {t('header.premium')}
-            </button>
-          )}
 
           {isAuthenticated ? (
             <div className="relative" ref={dropdownRef}>
