@@ -152,7 +152,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // --- Events ---
         TournamentEvent camp = eventRepository.save(TournamentEvent.builder()
-                .name("Dtached Summer Camp 2026")
+                .name("Camp Retour à l'Origine 2026")
                 .description("A 3-day intensive training camp focused on skill development, position coaching, and competitive drills. Open to all skill levels.")
                 .location("Concordia Stadium")
                 .city("Montreal").provinceState("QC")
@@ -168,7 +168,7 @@ public class DataSeeder implements CommandLineRunner {
                 .build());
 
         TournamentEvent tourney = eventRepository.save(TournamentEvent.builder()
-                .name("Dtached Championship Tournament")
+                .name("Tournoi Dtached 2026")
                 .description("The premier 7v7 championship featuring the top teams from across Canada. Pool play into single-elimination brackets.")
                 .location("BMO Field")
                 .city("Toronto").provinceState("ON")
