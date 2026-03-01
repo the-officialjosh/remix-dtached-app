@@ -6,40 +6,33 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "team_requests")
+@Table(name = "player_interests",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"team_id", "player_id", "direction"}))
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class TeamRequest {
+public class PlayerInterest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
 
+    /** TEAM_TO_PLAYER or PLAYER_TO_TEAM */
     @Column(nullable = false)
     private String direction;
 
+    /** PENDING, MATCHED, APPROVED, REJECTED */
     @Column(nullable = false)
     @Builder.Default
     private String status = "PENDING";
-
-    /** JOIN or TRANSFER */
-    @Column(name = "request_type", nullable = false)
-    @Builder.Default
-    private String requestType = "JOIN";
-
-    /** The team the player is leaving (only for TRANSFER) */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_team_id")
-    private Team fromTeam;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default

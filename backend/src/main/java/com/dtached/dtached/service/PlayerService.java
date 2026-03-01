@@ -25,6 +25,7 @@ public class PlayerService {
     private final PlayerMapper playerMapper;
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
+    private final TeamRequestRepository teamRequestRepository;
 
     public List<PlayerDTO> getLeaderboard(String type) {
         return playerMapper.toDTOList(playerRepository.findByTeamType(type));
@@ -57,7 +58,9 @@ public class PlayerService {
                 .shortsSize(request.getShortsSize())
                 .status("FREE_AGENT");
 
-        // Join team via invite code
+        Player player = playerRepository.save(builder.build());
+
+        // If invite code provided, create a PENDING join request (admin must approve)
         if (request.getInviteCode() != null && !request.getInviteCode().isBlank()) {
             Team team = teamRepository.findByInviteCode(request.getInviteCode().trim().toUpperCase())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid invite code"));
@@ -66,10 +69,17 @@ public class PlayerService {
                 throw new IllegalStateException("This team is not accepting players");
             }
 
-            builder.team(team).status("ON_TEAM");
+            com.dtached.dtached.model.TeamRequest joinRequest = com.dtached.dtached.model.TeamRequest.builder()
+                    .team(team)
+                    .player(player)
+                    .direction("PLAYER_TO_TEAM")
+                    .requestType("JOIN")
+                    .status("PENDING")
+                    .build();
+
+            teamRequestRepository.save(joinRequest);
         }
 
-        Player player = playerRepository.save(builder.build());
         return playerMapper.toDTO(player);
     }
 

@@ -74,6 +74,15 @@ public class SecurityConfig {
                     // Player verify
                     .requestMatchers(HttpMethod.POST, "/api/players/verify").authenticated()
 
+                    // Matching — interest endpoints
+                    .requestMatchers(HttpMethod.POST, "/api/interests/team/*/player/*").hasAnyRole("COACH", "TEAM_MANAGER")
+                    .requestMatchers(HttpMethod.POST, "/api/interests/player/team/*").hasRole("PLAYER")
+                    .requestMatchers(HttpMethod.GET, "/api/interests/my").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/interests/team/*").hasAnyRole("COACH", "TEAM_MANAGER")
+
+                    // Transfers
+                    .requestMatchers(HttpMethod.POST, "/api/transfers").hasRole("PLAYER")
+
                     // Swagger / OpenAPI
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
