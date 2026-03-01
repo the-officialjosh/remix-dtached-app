@@ -153,6 +153,41 @@ public class AuthService {
         return buildResponse(user, null);
     }
 
+    /**
+     * Request a password reset — generates a token and logs the link.
+     */
+    @Transactional
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email.toLowerCase(Locale.ROOT).trim())
+                .orElseThrow(() -> new IllegalArgumentException("No account found with that email"));
+
+        String resetToken = UUID.randomUUID().toString().replace("-", "");
+        user.setPasswordResetToken(resetToken);
+        user.setPasswordResetExpiresAt(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        // Log reset link (replace with SendGrid later)
+        log.info("🔑 PASSWORD RESET for {}: /reset-password?token={}", email, resetToken);
+    }
+
+    /**
+     * Reset password using a valid token.
+     */
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByPasswordResetToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid reset token"));
+
+        if (user.getPasswordResetExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Reset token has expired");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetExpiresAt(null);
+        userRepository.save(user);
+    }
+
     private AuthResponse buildResponse(User user, String token) {
         return AuthResponse.builder()
                 .token(token)

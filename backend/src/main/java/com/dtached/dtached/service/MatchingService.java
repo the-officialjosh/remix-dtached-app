@@ -30,6 +30,10 @@ public class MatchingService {
             throw new IllegalStateException("Player is not a free agent");
         }
 
+        if (!Boolean.TRUE.equals(player.getIsVerified())) {
+            throw new IllegalStateException("Player is not verified — must have a Player Card");
+        }
+
         // Check if interest already exists
         if (interestRepo.findByTeamIdAndPlayerIdAndDirection(teamId, playerId, "TEAM_TO_PLAYER").isPresent()) {
             throw new IllegalStateException("Interest already expressed");
@@ -62,6 +66,10 @@ public class MatchingService {
 
         if (!"FREE_AGENT".equals(player.getStatus())) {
             throw new IllegalStateException("Player is not a free agent");
+        }
+
+        if (!Boolean.TRUE.equals(player.getIsVerified())) {
+            throw new IllegalStateException("Player is not verified — must have a Player Card");
         }
 
         if (interestRepo.findByTeamIdAndPlayerIdAndDirection(teamId, playerId, "PLAYER_TO_TEAM").isPresent()) {

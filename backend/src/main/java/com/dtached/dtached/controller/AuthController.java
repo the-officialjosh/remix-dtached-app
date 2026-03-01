@@ -56,4 +56,25 @@ public class AuthController {
     public ResponseEntity<AuthResponse> resendConfirmation(Authentication authentication) {
         return ResponseEntity.ok(authService.resendConfirmation(authentication.getName()));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        authService.requestPasswordReset(email);
+        return ResponseEntity.ok(Map.of("message", "If an account exists, a reset link has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String password = body.get("password");
+        if (token == null || password == null || password.length() < 6) {
+            throw new IllegalArgumentException("Valid token and password (min 6 chars) required");
+        }
+        authService.resetPassword(token, password);
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+    }
 }

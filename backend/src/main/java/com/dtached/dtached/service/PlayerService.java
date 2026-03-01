@@ -97,9 +97,11 @@ public class PlayerService {
     public List<PlayerSummaryDTO> getFreeAgents(String position) {
         List<Player> agents;
         if (position != null && !position.isBlank()) {
-            agents = playerRepository.findByStatusAndPosition("FREE_AGENT", position.toUpperCase());
+            agents = playerRepository.findByStatusAndIsVerifiedAndOpenToOffersAndPosition(
+                    "FREE_AGENT", true, true, position.toUpperCase());
         } else {
-            agents = playerRepository.findByStatus("FREE_AGENT");
+            agents = playerRepository.findByStatusAndIsVerifiedAndOpenToOffers(
+                    "FREE_AGENT", true, true);
         }
 
         return agents.stream()

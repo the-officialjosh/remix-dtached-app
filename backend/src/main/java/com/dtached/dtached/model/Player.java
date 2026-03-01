@@ -86,6 +86,22 @@ public class Player {
     @Builder.Default
     private Boolean rosterLocked = false;
 
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    @Column(name = "school_club")
+    private String schoolClub;
+
+    @Column(name = "open_to_offers", nullable = false)
+    @Builder.Default
+    private Boolean openToOffers = false;
+
+    @Column(name = "emergency_contact")
+    private String emergencyContact;
+
+    @Column(name = "emergency_phone")
+    private String emergencyPhone;
+
     // Stats
     @Column(name = "total_yards", nullable = false) @Builder.Default private Integer totalYards = 0;
     @Column(name = "total_catches", nullable = false) @Builder.Default private Integer totalCatches = 0;

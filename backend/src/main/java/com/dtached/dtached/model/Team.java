@@ -57,6 +57,15 @@ public class Team {
     @Builder.Default
     private String l5 = "";
 
+    @Column(name = "banner_url")
+    private String bannerUrl;
+
+    @Column(name = "social_links", columnDefinition = "TEXT")
+    private String socialLinks;
+
+    @Column(columnDefinition = "TEXT")
+    private String achievements;
+
     // Relationships
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

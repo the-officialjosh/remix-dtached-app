@@ -21,6 +21,10 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     // Free agents filtered by position
     List<Player> findByStatusAndPosition(String status, String position);
 
+    // Verified free agents only (for coach search)
+    List<Player> findByStatusAndIsVerifiedAndOpenToOffers(String status, Boolean isVerified, Boolean openToOffers);
+    List<Player> findByStatusAndIsVerifiedAndOpenToOffersAndPosition(String status, Boolean isVerified, Boolean openToOffers, String position);
+
     // Leaderboard: players on teams of a given tournament type
     @Query("SELECT p FROM Player p JOIN p.team t WHERE t.type = :type")
     List<Player> findByTeamType(@Param("type") String type);
