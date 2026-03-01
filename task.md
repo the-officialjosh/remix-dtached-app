@@ -82,30 +82,30 @@
 ## Phase 4 — Payments & Verification
 
 ### 4.1 Stripe Integration
-- [ ] Add `stripe-java` dependency to pom.xml
-- [ ] `PaymentService` — create checkout sessions, handle webhooks
-- [ ] `PaymentController`: `POST /api/payments/checkout`, `POST /api/payments/webhook`
-- [ ] `Payment` entity + `PaymentRepository`
-- [ ] `PricingTier` entity (Tier 0, Tier 1, Tier 2)
-- [ ] V7 migration: `payments`, `pricing_tiers` tables
+- [x] Add `stripe-java` dependency to pom.xml
+- [x] `PaymentService` — create checkout sessions, handle webhooks
+- [x] `PaymentController`: `POST /api/payments/checkout`, `POST /api/payments/webhook`
+- [x] `Payment` entity + `PaymentRepository`
+- [x] `PricingTier` entity (Tier 0, Tier 1, Tier 2)
+- [x] V8 migration: `payments`, `pricing_tiers` tables
 
 ### 4.2 Player Card Purchase (Tier 1 — $9.99)
-- [ ] Checkout flow: player clicks "Get Player Card" → Stripe session → webhook confirms
-- [ ] On payment success: set `isVerified = true` on player
-- [ ] `PlayerCard` entity (name, photo, position, verified badge, QR code)
-- [ ] Frontend: Player Card page with purchase button
-- [ ] Frontend: digital player card display (downloadable)
+- [x] Checkout flow: player clicks "Get Player Card" → Stripe session → webhook confirms
+- [x] On payment success: set `isVerified = true` on player
+- [x] `PlayerCard` entity (name, photo, position, verified badge, QR code)
+- [x] Frontend: Player Card page with purchase button
+- [x] Frontend: digital player card display (downloadable)
 
 ### 4.3 Team Tournament Entry (Tier 2 — $45)
-- [ ] Checkout flow: coach pays for team → all members verified
-- [ ] On payment success: set all team players `isVerified = true`
-- [ ] Link payment to specific event (when events exist)
-- [ ] Frontend: payment button on coach dashboard
+- [x] Checkout flow: coach pays for team → all members verified
+- [x] On payment success: set all team players `isVerified = true`
+- [x] Link payment to specific event (when events exist)
+- [x] Frontend: payment button on coach dashboard
 
 ### 4.4 Revenue Dashboard (Admin)
-- [ ] `AdminController`: `GET /api/admin/payments` — list all payments
-- [ ] Admin tab: revenue summary, payment list, filters by tier/date
-- [ ] Stats cards: total revenue, Tier 1 count, Tier 2 count
+- [x] `AdminController`: `GET /api/admin/payments` — list all payments
+- [x] Admin tab: revenue summary, payment list, filters by tier/date
+- [x] Stats cards: total revenue, Tier 1 count, Tier 2 count
 
 ---
 
