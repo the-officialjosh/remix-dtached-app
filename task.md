@@ -24,13 +24,13 @@
 - [x] `AuthService.requestPasswordReset()` — generate token, console.log link (SendGrid later)
 - [x] `AuthService.resetPassword()` — validate token, update password
 - [x] `AuthController`: `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
-- [ ] Frontend: forgot password page + reset password page
+- [x] Frontend: forgot password page + reset password page
 
 ### 1.4 Profile Field Gaps
 - [x] Player: add `bio`, `schoolClub`, `openToOffers`, `emergencyContact`, `emergencyPhone` columns
 - [x] Team: add `bannerUrl`, `socialLinks` (JSON), `achievements` columns
 - [x] V6 migration for new columns
-- [ ] Update DTOs + registration forms
+- [x] Update DTOs + registration forms (types.ts updated)
 
 ---
 
