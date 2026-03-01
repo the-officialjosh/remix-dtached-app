@@ -101,27 +101,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Leaderboard', icon: Trophy, tab: 'stats', desc: 'View player stats' },
-          { label: 'Teams', icon: Users, tab: 'standings', desc: 'Team standings' },
-          { label: 'Schedule', icon: Calendar, tab: 'schedule', desc: 'Upcoming games' },
-          { label: 'My Profile', icon: UserCircle, tab: 'profile', desc: 'Edit your profile' },
-        ].map((item) => (
-          <button
-            key={item.tab}
-            onClick={() => onNavigate(item.tab)}
-            className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-yellow-500/30 transition-all"
-          >
-            <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center mb-3 group-hover:bg-yellow-500/10 transition-colors">
-              <item.icon className="w-5 h-5 text-zinc-400 group-hover:text-yellow-500 transition-colors" />
-            </div>
-            <div className="font-bold text-white text-sm">{item.label}</div>
-            <div className="text-xs text-zinc-500 mt-1">{item.desc}</div>
-          </button>
-        ))}
-      </div>
+
 
       {/* Player-specific dashboard */}
       {isPlayer && (
