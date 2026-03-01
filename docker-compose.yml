@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dtacheddb
+      POSTGRES_USER: dtached
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dtached_dev_pass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dtached -d dtacheddb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/dtacheddb
+      SPRING_DATASOURCE_USERNAME: dtached
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-dtached_dev_pass}
+      JWT_SECRET: ${JWT_SECRET:-dtached-dev-secret-key-change-in-production-min-256-bits-required}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  pgdata:
