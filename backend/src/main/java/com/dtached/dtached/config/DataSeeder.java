@@ -150,15 +150,15 @@ public class DataSeeder implements CommandLineRunner {
 
         log.info("Database seeded: 5 users, 4 teams, 4 players, 2 games.");
 
-        // --- Events ---
+        // --- Events (real details from translations.ts / HomePage) ---
         TournamentEvent camp = eventRepository.save(TournamentEvent.builder()
                 .name("Camp Retour à l'Origine 2026")
-                .description("A 3-day intensive training camp focused on skill development, position coaching, and competitive drills. Open to all skill levels.")
-                .location("Concordia Stadium")
-                .city("Montreal").provinceState("QC")
-                .startDate(LocalDate.of(2026, 7, 15))
-                .endDate(LocalDate.of(2026, 7, 17))
-                .registrationDeadline(LocalDate.of(2026, 7, 1))
+                .description("5e Édition — A one-day intensive training camp focused on skill development, position coaching, and competitive drills. Open to all skill levels.")
+                .location("Montréal")
+                .city("Montréal").provinceState("QC")
+                .startDate(LocalDate.of(2026, 6, 20))
+                .endDate(LocalDate.of(2026, 6, 20))
+                .registrationDeadline(LocalDate.of(2026, 6, 15))
                 .format("7v7")
                 .status("PUBLISHED")
                 .eventType("CAMP")
@@ -169,12 +169,12 @@ public class DataSeeder implements CommandLineRunner {
 
         TournamentEvent tourney = eventRepository.save(TournamentEvent.builder()
                 .name("Tournoi Dtached 2026")
-                .description("The premier 7v7 championship featuring the top teams from across Canada. Pool play into single-elimination brackets.")
-                .location("BMO Field")
-                .city("Toronto").provinceState("ON")
-                .startDate(LocalDate.of(2026, 8, 10))
-                .endDate(LocalDate.of(2026, 8, 12))
-                .registrationDeadline(LocalDate.of(2026, 7, 25))
+                .description("7v7 Boys & Flag Girls — The premier weekend tournament featuring top teams from across Canada.")
+                .location("Montréal")
+                .city("Montréal").provinceState("QC")
+                .startDate(LocalDate.of(2026, 6, 20))
+                .endDate(LocalDate.of(2026, 6, 21))
+                .registrationDeadline(LocalDate.of(2026, 6, 10))
                 .format("7v7")
                 .status("PUBLISHED")
                 .eventType("TOURNAMENT")
@@ -183,11 +183,11 @@ public class DataSeeder implements CommandLineRunner {
                 .entryFee(BigDecimal.valueOf(90.00))
                 .build());
 
-        // Divisions for each event
-        eventDivisionRepository.save(EventDivision.builder().event(camp).name("Elite").ageGroup("U18").maxTeams(8).build());
-        eventDivisionRepository.save(EventDivision.builder().event(camp).name("Development").ageGroup("U16").maxTeams(8).build());
-        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Elite").ageGroup("U18").maxTeams(16).build());
-        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Premier").ageGroup("U16").maxTeams(16).build());
+        // Divisions: 7v7 Boys & Flag Girls
+        eventDivisionRepository.save(EventDivision.builder().event(camp).name("7v7 Boys").ageGroup("U18").maxTeams(8).build());
+        eventDivisionRepository.save(EventDivision.builder().event(camp).name("Flag Girls").ageGroup("U18").maxTeams(8).build());
+        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("7v7 Boys").ageGroup("U18").maxTeams(16).build());
+        eventDivisionRepository.save(EventDivision.builder().event(tourney).name("Flag Girls").ageGroup("U18").maxTeams(16).build());
 
         // Packages for camp
         eventPackageRepository.save(EventPackage.builder().event(camp).name("Camp Registration").price(BigDecimal.valueOf(100.00))
