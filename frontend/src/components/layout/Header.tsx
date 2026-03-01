@@ -50,7 +50,6 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
     {id: 'media', label: t('nav.media'), icon: ImageIcon},
     {id: 'live', label: t('nav.livestream'), icon: Play},
     {id: 'register', label: t('nav.register'), icon: Plus},
-    ...((isAdmin || isCoach) ? [{id: 'admin', label: t('nav.management'), icon: Settings}] : []),
   ];
 
   const handleDropdownNav = (tab: string) => {

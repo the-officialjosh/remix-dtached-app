@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../lib/AuthContext';
 import { formatRole } from '../../lib/utils';
@@ -11,9 +11,11 @@ import {
   MailCheck,
   MailWarning,
   Send,
-  Settings,
 } from 'lucide-react';
 import PlayerDashboard from './PlayerDashboard';
+import AdminPage from './AdminPage';
+import type { Player, TeamStandings, Game } from '../../types';
+import { fetchTournamentData } from '../../lib/api';
 
 interface DashboardPageProps {
   onNavigate: (tab: string) => void;
@@ -23,8 +25,23 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
   const { user, resendConfirmation, isAdmin, isCoach } = useAuth();
   const [resending, setResending] = React.useState(false);
   const [resent, setResent] = React.useState(false);
+  const [adminSubTab, setAdminSubTab] = useState<any>('teams');
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [teams, setTeams] = useState<TeamStandings[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
 
   const isPlayer = user?.role === 'PLAYER';
+
+  const loadData = useCallback(async () => {
+    const data = await fetchTournamentData('7v7');
+    setPlayers(data.players);
+    setTeams(data.teams);
+    setGames(data.games);
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin || isCoach) loadData();
+  }, [isAdmin, isCoach, loadData]);
 
   const handleResend = async () => {
     setResending(true);
@@ -91,9 +108,6 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           { label: 'Teams', icon: Users, tab: 'standings', desc: 'Team standings' },
           { label: 'Schedule', icon: Calendar, tab: 'schedule', desc: 'Upcoming games' },
           { label: 'My Profile', icon: UserCircle, tab: 'profile', desc: 'Edit your profile' },
-          ...((isAdmin || isCoach) ? [
-            { label: 'Management', icon: Settings, tab: 'admin', desc: 'Admin & coach tools' },
-          ] : []),
         ].map((item) => (
           <button
             key={item.tab}
@@ -113,6 +127,20 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
       {isPlayer && (
         <div className="mt-4">
           <PlayerDashboard />
+        </div>
+      )}
+
+      {/* Admin/Coach Management Console — embedded right in the dashboard */}
+      {(isAdmin || isCoach) && (
+        <div className="mt-4 space-y-8">
+          <AdminPage
+            adminSubTab={adminSubTab}
+            setAdminSubTab={setAdminSubTab}
+            players={players}
+            teams={teams}
+            games={games}
+            onUpdate={loadData}
+          />
         </div>
       )}
     </motion.div>
