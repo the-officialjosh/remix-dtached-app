@@ -9,6 +9,7 @@ import com.dtached.dtached.model.Team;
 import com.dtached.dtached.model.User;
 import com.dtached.dtached.repository.PlayerRepository;
 import com.dtached.dtached.repository.TeamRepository;
+import com.dtached.dtached.repository.TeamRequestRepository;
 import com.dtached.dtached.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
