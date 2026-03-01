@@ -26,6 +26,11 @@ export interface Player {
   pending_team_name?: string;
   pending_category?: string;
   jersey_confirmed?: number;
+  bio?: string;
+  school_club?: string;
+  open_to_offers?: boolean;
+  emergency_contact?: string;
+  emergency_phone?: string;
 }
 
 export interface TeamStandings {
@@ -49,6 +54,9 @@ export interface TeamStandings {
   city?: string;
   province_state?: string;
   bio?: string;
+  banner_url?: string;
+  social_links?: string;
+  achievements?: string;
 }
 
 export interface Game {

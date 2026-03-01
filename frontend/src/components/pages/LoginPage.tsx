@@ -5,9 +5,10 @@ import { LogIn, UserPlus, Mail, Lock, AlertCircle } from 'lucide-react';
 
 interface LoginPageProps {
   onSwitchToRegister: () => void;
+  onForgotPassword?: () => void;
 }
 
-export default function LoginPage({ onSwitchToRegister }: LoginPageProps) {
+export default function LoginPage({ onSwitchToRegister, onForgotPassword }: LoginPageProps) {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -89,7 +90,16 @@ export default function LoginPage({ onSwitchToRegister }: LoginPageProps) {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
 
-          <div className="text-center pt-2">
+          <div className="text-center pt-2 space-y-2">
+            {onForgotPassword && (
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-sm text-zinc-500 hover:text-yellow-500 transition-colors block mx-auto"
+              >
+                Forgot your password?
+              </button>
+            )}
             <button
               type="button"
               onClick={onSwitchToRegister}

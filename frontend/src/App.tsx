@@ -27,6 +27,8 @@ import RegisterPage from './components/pages/RegisterPage';
 import RoleSelectionPage from './components/pages/RoleSelectionPage';
 import DashboardPage from './components/pages/DashboardPage';
 import ProfilePage from './components/pages/ProfilePage';
+import ForgotPasswordPage from './components/pages/ForgotPasswordPage';
+import ResetPasswordPage from './components/pages/ResetPasswordPage';
 
 // --- Feature Components ---
 import TeamModal from './components/team/TeamModal';
@@ -48,6 +50,7 @@ function AppContent() {
   const [notifications, setNotifications] = useState<{ id: number; msg: string }[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [initialEventType, setInitialEventType] = useState<'camp' | 'tournament' | undefined>(undefined);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   const toggleCategory = (key: string) => {
     setExpandedCategories(prev => ({ ...prev, [key]: !prev[key] }));
@@ -80,6 +83,14 @@ function AppContent() {
         })
         .catch(() => addNotification('Email confirmation failed.'));
       // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    // Handle password reset token from URL
+    const resetTokenParam = params.get('reset_token');
+    if (resetTokenParam) {
+      setResetToken(resetTokenParam);
+      setActiveTab('reset-password');
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
@@ -242,13 +253,25 @@ function AppContent() {
 
               {activeTab === 'login' && (
                 <motion.div key="login" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                  <LoginPage onSwitchToRegister={() => setActiveTab('signup')} />
+                  <LoginPage onSwitchToRegister={() => setActiveTab('signup')} onForgotPassword={() => setActiveTab('forgot-password')} />
                 </motion.div>
               )}
 
               {activeTab === 'signup' && (
                 <motion.div key="signup" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                   <RegisterPage onSwitchToLogin={() => setActiveTab('login')} />
+                </motion.div>
+              )}
+
+              {activeTab === 'forgot-password' && (
+                <motion.div key="forgot-password" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <ForgotPasswordPage onBack={() => setActiveTab('login')} />
+                </motion.div>
+              )}
+
+              {activeTab === 'reset-password' && resetToken && (
+                <motion.div key="reset-password" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <ResetPasswordPage token={resetToken} onBack={() => { setResetToken(null); setActiveTab('login'); }} />
                 </motion.div>
               )}
             </>
