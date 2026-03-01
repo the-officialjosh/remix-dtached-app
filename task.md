@@ -37,22 +37,22 @@
 ## Phase 2 — Finish Core Dashboards
 
 ### 2.1 Coach Dashboard Redesign
-- [ ] Coach-facing request view (pending join requests for their team)
-- [ ] Free agent search UI with filters (position, city, verified only)
-- [ ] "Express Interest" button on free agent cards
-- [ ] Incoming interest/match notifications
-- [ ] Player removal button (roster management)
+- [x] Coach-facing request view (pending join requests for their team)
+- [x] Free agent search UI with filters (position, city, verified only)
+- [x] "Express Interest" button on free agent cards
+- [x] Incoming interest/match notifications
+- [x] Player removal button (roster management)
 
 ### 2.2 Player Dashboard Redesign
-- [ ] Verification status card (verified vs unverified)
-- [ ] Team status section (current team, pending requests)
-- [ ] Free agent toggle (opt in/out of market — only if unattached + verified)
-- [ ] Interest notifications (teams interested in you)
-- [ ] Request/match status tracker
+- [x] Verification status card (verified vs unverified)
+- [x] Team status section (current team, pending requests)
+- [x] Free agent toggle (opt in/out of market — only if unattached + verified)
+- [x] Interest notifications (teams interested in you)
+- [x] Request/match status tracker
 
 ### 2.3 Admin Dashboard — Missing Sections
-- [ ] Separate Transfers queue tab (currently mixed into Requests)
-- [ ] Users management tab (all users, role filter, suspend/activate)
+- [x] Separate Transfers queue tab (currently mixed into Requests)
+- [x] Users management tab (all users, role filter, suspend/activate)
 
 ---
 
