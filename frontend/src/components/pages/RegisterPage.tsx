@@ -7,6 +7,22 @@ interface RegisterPageProps {
   onSwitchToLogin: () => void;
 }
 
+function getPasswordStrength(pw: string): number {
+  if (!pw) return 0;
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  // 0-5 → 0-3 buckets
+  if (score <= 1) return 1;
+  if (score <= 3) return 2;
+  return 3;
+}
+
+const strengthColors = ['', 'bg-red-500', 'bg-yellow-500', 'bg-green-500'];
+
 export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
   const { register } = useAuth();
   const [form, setForm] = useState({
@@ -15,16 +31,23 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
     firstName: '',
     lastName: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const strength = getPasswordStrength(form.password);
+  const passwordsMatch = form.password === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!passwordsMatch) {
+      setError('Passwords do not match');
+      return;
+    }
     setLoading(true);
     try {
       await register(form);
-      // After register → AuthContext redirects to role selection / confirmation
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -115,11 +138,46 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                 minLength={6}
               />
             </div>
+            {/* Strength bar */}
+            {form.password.length > 0 && (
+              <div className="flex gap-1.5 mt-2">
+                {[1, 2, 3].map((level) => (
+                  <div
+                    key={level}
+                    className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                      strength >= level ? strengthColors[strength] : 'bg-zinc-700'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Confirm Password</label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={`w-full pl-12 pr-4 py-3 bg-zinc-800 border rounded-xl text-white placeholder-zinc-500 focus:outline-none transition-colors ${
+                  confirmPassword.length > 0
+                    ? passwordsMatch
+                      ? 'border-green-500/50'
+                      : 'border-red-500/50'
+                    : 'border-zinc-700 focus:border-yellow-500/50'
+                }`}
+                placeholder="Re-enter password"
+                required
+                minLength={6}
+              />
+            </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !passwordsMatch || form.password.length < 6}
             className="w-full py-3 bg-yellow-500 text-black font-black uppercase tracking-widest rounded-xl hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
