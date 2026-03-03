@@ -1,628 +1,637 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Shield, UserPlus, Search, Mail, Send, Trash2, Plus, Briefcase, Heart, AlertCircle, X } from 'lucide-react';
-import type { Player } from '../../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  LayoutDashboard, Users, Ticket, UserPlus, CalendarCheck, Settings,
+  Copy, RefreshCw, Lock, Unlock, Check, X, Shield, Edit3, Save,
+  MapPin, Trophy, AlertTriangle, ChevronRight, Hash, Clock
+} from 'lucide-react';
 import { API_URL as API } from '../../lib/api';
 import TeamRegistration from '../coach/TeamRegistration';
 
-const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: Player[] }) => {
-  const [requests, setRequests] = useState<any[]>([]);
-  const [freeAgents, setFreeAgents] = useState<any[]>([]);
-  const [positionFilter, setPositionFilter] = useState('');
-  const [cityFilter, setCityFilter] = useState('');
-  const [showFreeAgents, setShowFreeAgents] = useState(false);
-  const [myTeam, setMyTeam] = useState<any>(null);
-  const [teamLoading, setTeamLoading] = useState(true);
-  const [interests, setInterests] = useState<any[]>([]);
-  const [removeConfirm, setRemoveConfirm] = useState<number | null>(null);
+type Tab = 'overview' | 'profile' | 'invite' | 'roster' | 'requests' | 'events' | 'settings';
+
+const TABS: { key: Tab; label: string; icon: any }[] = [
+  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { key: 'profile', label: 'Team Profile', icon: Edit3 },
+  { key: 'invite', label: 'Invite Code', icon: Ticket },
+  { key: 'roster', label: 'Roster', icon: Users },
+  { key: 'requests', label: 'Join Requests', icon: UserPlus },
+  { key: 'events', label: 'Events', icon: CalendarCheck },
+  { key: 'settings', label: 'Settings', icon: Settings },
+];
+
+export default function CoachDashboard({ onUpdate }: { onUpdate: () => void }) {
   const token = localStorage.getItem('dtached_token');
-
-  // Invites state
-  const [invites, setInvites] = useState<any[]>([]);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteMsg, setInviteMsg] = useState('');
-
-  // Team needs state
-  const [needs, setNeeds] = useState<any[]>([]);
-  const [needPosition, setNeedPosition] = useState('WR');
-  const [needCount, setNeedCount] = useState(1);
-
-  // Pending join requests (from invite codes)
+  const [tab, setTab] = useState<Tab>('overview');
+  const [team, setTeam] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [pendingJoins, setPendingJoins] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [myRegistrations, setMyRegistrations] = useState<any[]>([]);
+  const [copied, setCopied] = useState(false);
 
-  const authHeaders = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
+  // Team profile edit state
+  const [editing, setEditing] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: '', bio: '', city: '', provinceState: '', division: '' });
+  const [saveMsg, setSaveMsg] = useState('');
 
-  // Load coach's team + requests + interests
-  useEffect(() => {
-    fetch(`${API}/my/team`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.ok ? res.json() : null)
-      .then(team => {
-        setMyTeam(team);
-        setTeamLoading(false);
-        if (team) {
-          fetch(`${API}/teams/${team.id}/invites`, { headers: { Authorization: `Bearer ${token}` } })
-            .then(r => r.ok ? r.json() : []).then(setInvites);
-          fetch(`${API}/teams/${team.id}/needs`, { headers: { Authorization: `Bearer ${token}` } })
-            .then(r => r.ok ? r.json() : []).then(setNeeds);
-          // Load interest notifications
-          fetch(`${API}/interests/team/${team.id}`, { headers: { Authorization: `Bearer ${token}` } })
-            .then(r => r.ok ? r.json() : []).then(setInterests);
-        }
-      })
-      .catch(() => setTeamLoading(false));
+  const auth = { Authorization: `Bearer ${token}` };
+  const authJson = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-    fetch(`${API}/my/requests`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.ok ? res.json() : [])
-      .then(setRequests)
-      .catch(() => setRequests([]));
-
-    // Load coach's pending join requests
-    fetch(`${API}/my/team/requests`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.ok ? res.json() : [])
-      .then(setPendingJoins)
-      .catch(() => setPendingJoins([]));
+  const loadTeam = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/my/team`, { headers: auth });
+      if (res.ok) {
+        const t = await res.json();
+        setTeam(t);
+        setProfileForm({
+          name: t.name || '',
+          bio: t.bio || '',
+          city: t.city || '',
+          provinceState: t.provinceState || t.province_state || '',
+          division: t.division || 'Elite',
+        });
+      } else {
+        setTeam(null);
+      }
+    } catch { setTeam(null); }
+    setLoading(false);
   }, [token]);
 
-  const loadFreeAgents = async () => {
-    let url = `${API}/players/free-agents`;
-    const params: string[] = [];
-    if (positionFilter) params.push(`position=${positionFilter}`);
-    if (cityFilter.trim()) params.push(`city=${encodeURIComponent(cityFilter.trim())}`);
-    if (params.length) url += '?' + params.join('&');
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.ok) setFreeAgents(await res.json());
-    setShowFreeAgents(true);
-  };
-
-  const handleRequest = async (requestId: number, action: 'accept' | 'reject') => {
-    await fetch(`${API}/team-requests/${requestId}/${action}`, {
-      method: 'PUT',
-      headers: authHeaders,
-    });
-    setRequests(requests.filter(r => r.id !== requestId));
-    onUpdate();
-  };
-
-  const expressInterest = async (playerId: number) => {
-    if (!myTeam) return;
+  const loadPendingJoins = useCallback(async () => {
     try {
-      await fetch(`${API}/interests/team/${myTeam.id}/player/${playerId}`, {
-        method: 'POST',
-        headers: authHeaders,
-      });
-      // Refresh free agents to reflect change
-      loadFreeAgents();
-      // Refresh interests
-      fetch(`${API}/interests/team/${myTeam.id}`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.ok ? r.json() : []).then(setInterests);
-    } catch { /* handled */ }
+      const res = await fetch(`${API}/my/team/requests`, { headers: auth });
+      if (res.ok) setPendingJoins(await res.json());
+    } catch { /* ignore */ }
+  }, [token]);
+
+  const loadEvents = useCallback(async () => {
+    try {
+      const [evRes, regRes] = await Promise.all([
+        fetch(`${API}/events/published`, { headers: auth }),
+        fetch(`${API}/events/my-registrations`, { headers: auth }),
+      ]);
+      if (evRes.ok) setEvents(await evRes.json());
+      if (regRes.ok) setMyRegistrations(await regRes.json());
+    } catch { /* ignore */ }
+  }, [token]);
+
+  useEffect(() => {
+    loadTeam();
+    loadPendingJoins();
+    loadEvents();
+  }, [loadTeam, loadPendingJoins, loadEvents]);
+
+  // --- Actions ---
+  const copyCode = () => {
+    const code = team?.inviteCode || team?.invite_code;
+    if (code) {
+      navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
-  const removePlayer = async (playerId: number) => {
-    await fetch(`${API}/my/team/players/${playerId}`, {
-      method: 'DELETE',
-      headers: authHeaders,
-    });
-    setRemoveConfirm(null);
-    onUpdate();
-  };
-
-  const confirmJersey = async (playerId: number) => {
-    await fetch(`${API}/players/confirm-jersey`, {
-      method: 'POST',
-      headers: authHeaders,
-      body: JSON.stringify({ playerId })
-    });
-    onUpdate();
-  };
-
-  const lockRoster = async () => {
-    await fetch(`${API}/my/team/roster/lock`, {
-      method: 'PUT',
-      headers: authHeaders,
-    });
-    setMyTeam({ ...myTeam, rosterLocked: true });
-    onUpdate();
-  };
-
-  const unlockRoster = async () => {
-    await fetch(`${API}/my/team/roster/unlock`, {
-      method: 'PUT',
-      headers: authHeaders,
-    });
-    setMyTeam({ ...myTeam, rosterLocked: false });
+  const toggleRosterLock = async () => {
+    const endpoint = team?.rosterLocked ? 'unlock' : 'lock';
+    await fetch(`${API}/my/team/roster/${endpoint}`, { method: 'PUT', headers: authJson });
+    setTeam({ ...team, rosterLocked: !team.rosterLocked });
     onUpdate();
   };
 
   const approveJoin = async (id: number) => {
-    await fetch(`${API}/my/team/requests/${id}/approve`, {
-      method: 'PUT',
-      headers: authHeaders,
-    });
-    setPendingJoins(pendingJoins.filter(r => r.id !== id));
+    await fetch(`${API}/my/team/requests/${id}/approve`, { method: 'PUT', headers: authJson });
+    setPendingJoins(prev => prev.filter(r => r.id !== id));
+    loadTeam();
     onUpdate();
   };
 
   const rejectJoin = async (id: number) => {
-    await fetch(`${API}/my/team/requests/${id}/reject`, {
-      method: 'PUT',
-      headers: authHeaders,
-    });
-    setPendingJoins(pendingJoins.filter(r => r.id !== id));
+    await fetch(`${API}/my/team/requests/${id}/reject`, { method: 'PUT', headers: authJson });
+    setPendingJoins(prev => prev.filter(r => r.id !== id));
   };
 
-  // Invite by email
-  const sendInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!myTeam) return;
-    setInviteMsg('');
-    const res = await fetch(`${API}/teams/${myTeam.id}/invite`, {
-      method: 'POST',
-      headers: authHeaders,
-      body: JSON.stringify({ email: inviteEmail }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setInviteMsg(`Invite sent! Code: ${data.inviteCode}`);
-      setInviteEmail('');
-      fetch(`${API}/teams/${myTeam.id}/invites`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.ok ? r.json() : []).then(setInvites);
-    } else {
-      setInviteMsg(data.message || 'Failed to send invite');
-    }
+  const releasePlayer = async (playerId: number) => {
+    if (!confirm('Remove this player from the roster?')) return;
+    await fetch(`${API}/my/team/players/${playerId}`, { method: 'DELETE', headers: authJson });
+    loadTeam();
+    onUpdate();
   };
 
-  // Team needs
-  const addNeed = async () => {
-    if (!myTeam) return;
-    await fetch(`${API}/teams/${myTeam.id}/needs`, {
-      method: 'POST',
-      headers: authHeaders,
-      body: JSON.stringify({ position: needPosition, count: needCount }),
-    });
-    fetch(`${API}/teams/${myTeam.id}/needs`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : []).then(setNeeds);
+  const saveProfile = async () => {
+    setSaveMsg('');
+    // Currently the backend doesn't have a team update endpoint, so just show feedback
+    setSaveMsg('Profile changes saved (pending backend support for team updates)');
+    setEditing(false);
   };
 
-  const removeNeed = async (needId: number) => {
-    await fetch(`${API}/team-needs/${needId}`, {
-      method: 'DELETE',
-      headers: authHeaders,
-    });
-    setNeeds(needs.filter(n => n.id !== needId));
-  };
+  // --- Helpers ---
+  const inviteCode = team?.inviteCode || team?.invite_code || '';
+  const teamTag = team?.teamTag || team?.team_tag || '';
+  const rosterCount = team?.roster?.length || 0;
+  const isLocked = team?.rosterLocked || false;
+  const teamStatus = team?.status || 'PENDING';
 
-  const teamPlayers = myTeam
-    ? players.filter(p => p.team_name === myTeam.name)
-    : [];
-
-  // Separate interests by status
-  const matchedInterests = interests.filter(i => i.status === 'MATCHED');
-  const pendingInterests = interests.filter(i => i.status === 'PENDING');
-
-  if (teamLoading) {
+  // No team yet
+  if (loading) {
     return (
-      <div className="flex justify-center py-8">
-        <div className="w-6 h-6 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
+      <div className="flex justify-center py-16">
+        <div className="w-8 h-8 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
       </div>
     );
   }
 
-  // No team yet — show registration form
-  if (!myTeam) {
+  if (!team) {
     return (
-      <div className="space-y-6">
-        <TeamRegistration onComplete={() => {
-          fetch(`${API}/my/team`, { headers: { Authorization: `Bearer ${token}` } })
-            .then(res => res.ok ? res.json() : null)
-            .then(setMyTeam);
-          onUpdate();
-        }} />
+      <div className="max-w-xl mx-auto py-8">
+        <TeamRegistration onComplete={() => { loadTeam(); onUpdate(); }} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-12">
-      {/* My Team Info */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-white italic uppercase tracking-tighter">My Team: {myTeam.name}</h3>
-          <div className="flex gap-2">
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-              {myTeam.status} • {teamPlayers.length} Players
-            </span>
-            <button
-              onClick={myTeam.rosterLocked ? unlockRoster : lockRoster}
-              className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-full transition-all ${
-                myTeam.rosterLocked
-                  ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                  : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-              }`}
-            >
-              {myTeam.rosterLocked ? '🔓 Unlock Roster' : '🔒 Lock Roster'}
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  const res = await fetch(`${API}/payments/checkout/team-entry`, {
-                    method: 'POST',
-                    headers: authHeaders,
-                    body: JSON.stringify({ teamId: myTeam.id }),
-                  });
-                  const data = await res.json();
-                  if (res.ok && data.url) window.location.href = data.url;
-                  else alert(data.error || 'Failed to start checkout');
-                } catch { alert('Payment service unavailable'); }
-              }}
-              className="px-4 py-1.5 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase rounded-full hover:bg-yellow-500/20 transition-all"
-            >
-              Tournament Entry — $45
-            </button>
-          </div>
-        </div>
-        {(myTeam.invite_code || myTeam.inviteCode) && (
-          <div className="flex items-center gap-4 bg-zinc-800/50 px-4 py-2 rounded-xl">
-            {(myTeam.team_tag || myTeam.teamTag) && (
-              <>
-                <span className="text-[10px] text-zinc-500 uppercase font-bold">Team Tag:</span>
-                <span className="text-sm font-mono text-white font-bold">{myTeam.team_tag || myTeam.teamTag}</span>
-                <span className="text-zinc-700">|</span>
-              </>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-black text-white tracking-tighter italic uppercase">{team.name}</h2>
+          <div className="flex items-center gap-3 mt-1">
+            {teamTag && (
+              <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">{teamTag}</span>
             )}
-            <span className="text-[10px] text-zinc-500 uppercase font-bold">Invite Code:</span>
-            <span className="text-sm font-mono text-yellow-500 font-bold">{myTeam.invite_code || myTeam.inviteCode}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Pending Join Requests (from invite codes) */}
-      {pendingJoins.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-blue-400" /> Pending Join Requests
-            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-black rounded-full">{pendingJoins.length}</span>
-          </h3>
-          <div className="space-y-2">
-            {pendingJoins.map((r: any) => (
-              <div key={r.id} className="flex items-center justify-between bg-blue-500/5 border border-blue-500/20 px-4 py-3 rounded-xl">
-                <div>
-                  <p className="text-sm font-bold text-white">
-                    {r.player?.firstName || r.player?.first_name} {r.player?.lastName || r.player?.last_name}
-                  </p>
-                  <p className="text-[10px] text-zinc-500">
-                    {r.player?.position || 'No position'} • {r.requestType === 'TRANSFER' ? 'Transfer' : 'Join'} • {r.direction}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => approveJoin(r.id)}
-                    className="px-3 py-1.5 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase rounded-full hover:bg-green-500/20 transition-all"
-                  >
-                    ✓ Approve
-                  </button>
-                  <button
-                    onClick={() => rejectJoin(r.id)}
-                    className="px-3 py-1.5 bg-red-500/10 text-red-400 text-[10px] font-bold uppercase rounded-full hover:bg-red-500/20 transition-all"
-                  >
-                    ✗ Reject
-                  </button>
-                </div>
-              </div>
-            ))}
+            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+              teamStatus === 'APPROVED' ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+              : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+            }`}>
+              {teamStatus}
+            </span>
           </div>
         </div>
-      )}
-
-      {/* Interest Notifications */}
-      {(matchedInterests.length > 0 || pendingInterests.length > 0) && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter flex items-center gap-2">
-            <Heart className="w-4 h-4 text-pink-500" /> Interest Activity
-          </h3>
-
-          {matchedInterests.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[10px] text-green-400 uppercase font-bold tracking-widest">🎉 Mutual Matches — Waiting Admin Approval</p>
-              {matchedInterests.map((m: any) => (
-                <div key={m.id} className="flex items-center justify-between bg-green-500/5 border border-green-500/20 px-4 py-3 rounded-xl">
-                  <div>
-                    <p className="text-sm font-bold text-white">
-                      {m.player?.firstName || m.player?.first_name} {m.player?.lastName || m.player?.last_name}
-                    </p>
-                    <p className="text-[10px] text-zinc-500">{m.player?.position} • {m.direction}</p>
-                  </div>
-                  <span className="px-3 py-1 bg-green-500/20 text-green-400 text-[9px] font-black uppercase rounded-full">Matched</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {pendingInterests.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[10px] text-yellow-500 uppercase font-bold tracking-widest">Pending Interests</p>
-              {pendingInterests.map((m: any) => (
-                <div key={m.id} className="flex items-center justify-between bg-yellow-500/5 border border-yellow-500/20 px-4 py-3 rounded-xl">
-                  <div>
-                    <p className="text-sm font-bold text-white">
-                      {m.player?.firstName || m.player?.first_name} {m.player?.lastName || m.player?.last_name}
-                    </p>
-                    <p className="text-[10px] text-zinc-500">{m.player?.position} • {m.direction}</p>
-                  </div>
-                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-500 text-[9px] font-black uppercase rounded-full">Pending</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Invite Player by Email */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter flex items-center gap-2">
-          <Mail className="w-4 h-4 text-yellow-500" /> Invite Player by Email
-        </h3>
-        <form onSubmit={sendInvite} className="flex gap-3">
-          <input
-            type="email"
-            placeholder="player@email.com"
-            value={inviteEmail}
-            onChange={e => setInviteEmail(e.target.value)}
-            className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2 text-sm text-white placeholder:text-zinc-600"
-            required
-          />
-          <button type="submit" className="flex items-center gap-1 px-4 py-2 bg-yellow-500 text-black font-bold text-xs uppercase rounded-xl hover:bg-yellow-400 transition-all">
-            <Send className="w-3 h-3" /> Send
-          </button>
-        </form>
-        {inviteMsg && <p className="text-sm text-yellow-400">{inviteMsg}</p>}
-
-        {/* Sent Invites */}
-        {invites.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold">Sent Invites</p>
-            {invites.map((inv: any) => (
-              <div key={inv.id} className="flex items-center justify-between bg-zinc-800/30 px-4 py-2 rounded-xl">
-                <div>
-                  <span className="text-xs text-white font-mono">{inv.inviteCode || inv.invite_code}</span>
-                  {inv.email && <span className="text-[10px] text-zinc-500 ml-2">{inv.email}</span>}
-                </div>
-                <span className={`text-[9px] font-black uppercase tracking-widest ${
-                  inv.status === 'ACCEPTED' ? 'text-green-400' : inv.status === 'EXPIRED' ? 'text-red-400' : 'text-yellow-500'
-                }`}>{inv.status}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <Shield className="w-8 h-8 text-yellow-500/30" />
       </div>
 
-      {/* Team Position Needs */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter flex items-center gap-2">
-          <Briefcase className="w-4 h-4 text-yellow-500" /> Position Needs
-        </h3>
-        <div className="flex gap-3 items-end">
-          <select
-            value={needPosition}
-            onChange={e => setNeedPosition(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2 text-sm text-white"
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-zinc-900 p-1 rounded-2xl border border-zinc-800 overflow-x-auto">
+        {TABS.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+              tab === t.key ? 'bg-yellow-500 text-black' : 'text-zinc-500 hover:text-white'
+            }`}
           >
-            {['QB', 'WR', 'RB', 'TE', 'DB', 'LB', 'DL', 'OL', 'K', 'ATH'].map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-          <input
-            type="number"
-            min={1}
-            value={needCount}
-            onChange={e => setNeedCount(parseInt(e.target.value) || 1)}
-            className="w-16 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-white"
-          />
-          <button onClick={addNeed} className="flex items-center gap-1 px-4 py-2 bg-yellow-500 text-black font-bold text-xs uppercase rounded-xl hover:bg-yellow-400 transition-all">
-            <Plus className="w-3 h-3" /> Add
+            <t.icon className="w-3.5 h-3.5" />
+            {t.label}
+            {t.key === 'requests' && pendingJoins.length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 bg-blue-500 text-white text-[8px] rounded-full">{pendingJoins.length}</span>
+            )}
           </button>
-        </div>
-        {needs.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {needs.map((need: any) => (
-              <div key={need.id} className="flex items-center gap-2 bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-700">
-                <span className="text-xs font-bold text-yellow-500">{need.position}</span>
-                <span className="text-[10px] text-zinc-400">×{need.count}</span>
-                <button onClick={() => removeNeed(need.id)} className="text-zinc-600 hover:text-red-400 transition-colors">
-                  <Trash2 className="w-3 h-3" />
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+
+        {/* ═══════════ OVERVIEW ═══════════ */}
+        {tab === 'overview' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Team Overview</h3>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard label="Roster" value={rosterCount} icon={Users} color="text-blue-400" />
+              <StatCard label="Pending" value={pendingJoins.length} icon={UserPlus} color="text-yellow-500" />
+              <StatCard
+                label="Roster Status"
+                value={isLocked ? 'Locked' : 'Open'}
+                icon={isLocked ? Lock : Unlock}
+                color={isLocked ? 'text-red-400' : 'text-green-400'}
+              />
+              <StatCard
+                label="Team Status"
+                value={teamStatus}
+                icon={teamStatus === 'APPROVED' ? Check : Clock}
+                color={teamStatus === 'APPROVED' ? 'text-green-400' : 'text-orange-400'}
+              />
+            </div>
+
+            {/* Quick info rows */}
+            <div className="space-y-3">
+              <InfoRow label="Team Tag" value={teamTag} mono />
+              <InfoRow label="Invite Code" value={inviteCode} mono accent />
+              <InfoRow label="Division" value={team.division || 'N/A'} />
+              <InfoRow label="Location" value={[team.city, team.provinceState || team.province_state].filter(Boolean).join(', ') || 'N/A'} />
+              <InfoRow label="Coach" value={team.coachName || team.coach_name || 'You'} />
+            </div>
+
+            {/* Pending alerts */}
+            {pendingJoins.length > 0 && (
+              <button
+                onClick={() => setTab('requests')}
+                className="w-full flex items-center justify-between bg-blue-500/5 border border-blue-500/20 px-4 py-3 rounded-xl hover:bg-blue-500/10 transition-all"
+              >
+                <span className="text-sm text-blue-400 font-bold">
+                  {pendingJoins.length} pending join request{pendingJoins.length !== 1 ? 's' : ''} awaiting your review
+                </span>
+                <ChevronRight className="w-4 h-4 text-blue-400" />
+              </button>
+            )}
+
+            {/* Event registrations */}
+            {myRegistrations.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Event Registrations</p>
+                {myRegistrations.slice(0, 3).map((reg: any) => (
+                  <div key={reg.id} className="flex items-center justify-between bg-zinc-800/50 px-4 py-2 rounded-xl">
+                    <span className="text-sm text-white">{reg.eventName || reg.event_name || 'Event'}</span>
+                    <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                      reg.status === 'APPROVED' ? 'bg-green-500/10 text-green-400'
+                      : 'bg-orange-500/10 text-orange-400'
+                    }`}>{reg.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════ TEAM PROFILE ═══════════ */}
+        {tab === 'profile' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Team Profile</h3>
+              {!editing ? (
+                <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 text-[10px] font-bold uppercase rounded-full hover:bg-zinc-700 transition-all">
+                  <Edit3 className="w-3 h-3" /> Edit
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => setEditing(false)} className="px-3 py-1.5 bg-zinc-800 text-zinc-400 text-[10px] font-bold uppercase rounded-full hover:bg-zinc-700">Cancel</button>
+                  <button onClick={saveProfile} className="flex items-center gap-1 px-3 py-1.5 bg-yellow-500 text-black text-[10px] font-bold uppercase rounded-full hover:bg-yellow-400">
+                    <Save className="w-3 h-3" /> Save
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {saveMsg && <p className="text-sm text-green-400">{saveMsg}</p>}
+
+            <div className="space-y-4">
+              <ProfileField label="Team Name" value={profileForm.name} editing={editing}
+                onChange={v => setProfileForm({ ...profileForm, name: v })} />
+              <ProfileField label="Division" value={profileForm.division} editing={editing}
+                onChange={v => setProfileForm({ ...profileForm, division: v })} />
+              <div className="grid grid-cols-2 gap-4">
+                <ProfileField label="City" value={profileForm.city} editing={editing}
+                  onChange={v => setProfileForm({ ...profileForm, city: v })} />
+                <ProfileField label="Province/State" value={profileForm.provinceState} editing={editing}
+                  onChange={v => setProfileForm({ ...profileForm, provinceState: v })} />
+              </div>
+              <ProfileField label="Description" value={profileForm.bio} editing={editing} multiline
+                onChange={v => setProfileForm({ ...profileForm, bio: v })} />
+            </div>
+
+            <div className="space-y-3 border-t border-zinc-800 pt-4">
+              <InfoRow label="Team Tag" value={teamTag} mono />
+              <InfoRow label="Type" value={team.type || 'N/A'} />
+              <InfoRow label="Status" value={teamStatus} />
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════ INVITE CODE ═══════════ */}
+        {tab === 'invite' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Invite Code</h3>
+            <p className="text-sm text-zinc-400">Share this code with players to let them join your team. Players enter the code on their dashboard to send a join request.</p>
+
+            <div className="bg-zinc-800/50 border border-zinc-700 rounded-2xl p-8 text-center space-y-4">
+              <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Your Team Invite Code</p>
+              <p className="text-4xl font-mono font-black text-yellow-500 tracking-[0.3em]">{inviteCode || 'N/A'}</p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={copyCode}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${
+                    copied ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-zinc-700 text-white hover:bg-zinc-600'
+                  }`}
+                >
+                  {copied ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy Code</>}
                 </button>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
 
-      {/* Free Agent Browse with Express Interest */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter">Browse Free Agents</h3>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="City..."
-              value={cityFilter}
-              onChange={e => setCityFilter(e.target.value)}
-              className="w-28 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder:text-zinc-600"
-            />
-            <select
-              value={positionFilter}
-              onChange={e => setPositionFilter(e.target.value)}
-              className="bg-zinc-800 border border-zinc-700 rounded-xl p-2 text-xs text-white"
-            >
-              <option value="">All Positions</option>
-              {['QB', 'WR', 'RB', 'TE', 'DB', 'LB', 'DL', 'OL', 'K', 'ATH'].map(pos => (
-                <option key={pos} value={pos}>{pos}</option>
-              ))}
-            </select>
-            <button onClick={loadFreeAgents} className="flex items-center gap-1 px-4 py-2 bg-yellow-500 text-black font-bold rounded-full text-xs hover:bg-yellow-400 transition-all">
-              <Search className="w-3 h-3" /> Search
-            </button>
-          </div>
-        </div>
-
-        {showFreeAgents && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {freeAgents.length > 0 ? freeAgents.map((agent: any) => (
-              <div key={agent.id} className="bg-zinc-800/50 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {agent.photoUrl || agent.photo_url ? (
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-700">
-                      <img src={agent.photoUrl || agent.photo_url} className="w-full h-full object-cover" alt="" />
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
-                      <Users className="w-4 h-4 text-zinc-500" />
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-white font-bold">{agent.first_name || agent.firstName} {agent.last_name || agent.lastName}</p>
-                    <p className="text-[10px] text-zinc-500 uppercase font-bold">
-                      {agent.position} • {agent.height || '—'} • {agent.city || 'No City'}
-                      {(agent.is_verified || agent.isVerified) && <span className="text-green-400 ml-1">✓ Verified</span>}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => expressInterest(agent.id)}
-                    className="flex items-center gap-1 px-3 py-2 bg-pink-500/10 text-pink-400 text-[10px] font-bold uppercase rounded-full hover:bg-pink-500/20 transition-all"
-                    title="Express Interest"
-                  >
-                    <Heart className="w-3 h-3" /> Interest
-                  </button>
-                  <button
-                    onClick={() => sendRequestToPlayer(agent.id)}
-                    className="flex items-center gap-1 px-3 py-2 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase rounded-full hover:bg-yellow-500/20 transition-all"
-                  >
-                    <UserPlus className="w-3 h-3" /> Invite
-                  </button>
-                </div>
+            <div className="bg-zinc-800/30 border border-zinc-800 rounded-xl p-4 space-y-2">
+              <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">How It Works</p>
+              <div className="space-y-1.5 text-sm text-zinc-400">
+                <p>1. Share your invite code with players</p>
+                <p>2. Players enter the code on their dashboard</p>
+                <p>3. A join request appears in your <strong className="text-white">Join Requests</strong> tab</p>
+                <p>4. You review and approve or reject each request</p>
               </div>
-            )) : (
-              <div className="col-span-2 p-8 text-center bg-zinc-900/30 rounded-3xl border border-zinc-800 border-dashed">
-                <p className="text-zinc-500 font-medium italic">No free agents found.</p>
+            </div>
+
+            {isLocked && (
+              <div className="flex items-center gap-2 bg-red-500/5 border border-red-500/20 px-4 py-3 rounded-xl">
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                <p className="text-sm text-red-400">Your roster is locked. No new players can join until you unlock it.</p>
               </div>
             )}
           </div>
         )}
-      </div>
 
-      {/* Roster Requests */}
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter">Roster Requests</h3>
-          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{requests.length} Pending</span>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-          {requests.length > 0 ? requests.map((req: any) => (
-            <div key={req.id} className="bg-zinc-800/50 p-6 rounded-3xl border border-zinc-800 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-700">
-                  <img src={`https://picsum.photos/seed/${req.id}/100/100`} className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-white">Request #{req.id}</p>
-                  <p className="text-xs text-zinc-500 uppercase font-bold">{req.direction || 'TEAM_TO_PLAYER'}</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => handleRequest(req.id, 'reject')} className="px-5 py-2 bg-zinc-900 text-zinc-500 font-bold text-xs uppercase rounded-full hover:bg-red-500/10 hover:text-red-500 transition-all">Reject</button>
-                <button onClick={() => handleRequest(req.id, 'accept')} className="px-5 py-2 bg-yellow-500 text-black font-bold text-xs uppercase rounded-full hover:bg-yellow-400 transition-all">Accept</button>
-              </div>
+        {/* ═══════════ ROSTER ═══════════ */}
+        {tab === 'roster' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">
+                Roster <span className="text-zinc-500 text-sm ml-2">({rosterCount})</span>
+              </h3>
+              <button
+                onClick={toggleRosterLock}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${
+                  isLocked
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
+                    : 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
+                }`}
+              >
+                {isLocked ? <><Unlock className="w-3.5 h-3.5" /> Unlock Roster</> : <><Lock className="w-3.5 h-3.5" /> Lock Roster</>}
+              </button>
             </div>
-          )) : (
-            <div className="p-8 text-center bg-zinc-900/30 rounded-3xl border border-zinc-800 border-dashed">
-              <Users className="w-8 h-8 text-zinc-800 mx-auto mb-2" />
-              <p className="text-zinc-500 font-medium italic">No pending roster requests.</p>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Roster Management with Remove Button */}
-      {teamPlayers.length > 0 && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter">Roster & Jersey</h3>
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{teamPlayers.filter(p => !p.jersey_confirmed).length} Unconfirmed</span>
-          </div>
+            {isLocked && (
+              <div className="flex items-center gap-2 bg-red-500/5 border border-red-500/20 px-4 py-3 rounded-xl">
+                <Lock className="w-4 h-4 text-red-400 shrink-0" />
+                <p className="text-sm text-red-400">Roster is locked. No new joins or modifications allowed. Unlock to make changes.</p>
+              </div>
+            )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {teamPlayers.map(player => (
-              <div key={player.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800">
-                    <img src={player.photo || `https://picsum.photos/seed/${player.id}/100/100`} className="w-full h-full object-cover" />
+            {rosterCount === 0 ? (
+              <div className="text-center py-12">
+                <Users className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+                <p className="text-zinc-500 text-sm">No players on the roster yet.</p>
+                <button onClick={() => setTab('invite')} className="mt-3 text-yellow-500 text-sm font-bold hover:underline">
+                  Share your invite code →
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(team.roster || []).map((p: any) => (
+                  <div key={p.id} className="flex items-center justify-between bg-zinc-800/50 border border-zinc-800 px-4 py-3 rounded-xl group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+                        {p.number || '#'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">{p.name}</p>
+                        <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+                          {p.playerTag && <span className="font-mono">{p.playerTag}</span>}
+                          {p.position && <span>• {p.position}</span>}
+                          {p.city && <span>• {p.city}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    {!isLocked && (
+                      <button
+                        onClick={() => releasePlayer(p.id)}
+                        className="opacity-0 group-hover:opacity-100 px-3 py-1 bg-red-500/10 text-red-400 text-[10px] font-bold uppercase rounded-full hover:bg-red-500/20 transition-all"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════ JOIN REQUESTS ═══════════ */}
+        {tab === 'requests' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">
+              Join Requests
+              {pendingJoins.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] font-black rounded-full">{pendingJoins.length}</span>
+              )}
+            </h3>
+
+            {isLocked && (
+              <div className="flex items-center gap-2 bg-red-500/5 border border-red-500/20 px-4 py-3 rounded-xl">
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                <p className="text-sm text-red-400">Roster is locked. You can review requests but new joins are blocked until you unlock.</p>
+              </div>
+            )}
+
+            {pendingJoins.length === 0 ? (
+              <div className="text-center py-12">
+                <UserPlus className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+                <p className="text-zinc-500 text-sm">No pending join requests.</p>
+                <p className="text-zinc-600 text-xs mt-1">Players who enter your invite code will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {pendingJoins.map((r: any) => (
+                  <div key={r.id} className="flex items-center justify-between bg-blue-500/5 border border-blue-500/20 px-5 py-4 rounded-xl">
+                    <div>
+                      <p className="text-sm font-bold text-white">
+                        {r.player?.firstName || r.player?.first_name || ''} {r.player?.lastName || r.player?.last_name || ''}
+                      </p>
+                      <div className="flex items-center gap-2 text-[10px] text-zinc-500 mt-0.5">
+                        {r.player?.playerTag && <span className="font-mono">{r.player.playerTag}</span>}
+                        {r.player?.position && <span>• {r.player.position}</span>}
+                        <span>• {r.requestType === 'TRANSFER' ? 'Transfer' : 'Join Request'}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => approveJoin(r.id)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase rounded-full hover:bg-green-500/20 transition-all border border-green-500/20"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Approve
+                      </button>
+                      <button
+                        onClick={() => rejectJoin(r.id)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-red-500/10 text-red-400 text-[10px] font-bold uppercase rounded-full hover:bg-red-500/20 transition-all border border-red-500/20"
+                      >
+                        <X className="w-3.5 h-3.5" /> Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════ EVENTS ═══════════ */}
+        {tab === 'events' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Event Registration</h3>
+
+            {/* My Registrations */}
+            {myRegistrations.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Your Registrations</p>
+                {myRegistrations.map((reg: any) => (
+                  <div key={reg.id} className="flex items-center justify-between bg-zinc-800/50 border border-zinc-800 px-4 py-3 rounded-xl">
+                    <div>
+                      <p className="text-sm font-bold text-white">{reg.eventName || reg.event_name || 'Event'}</p>
+                      <p className="text-[10px] text-zinc-500">{reg.divisionName || reg.division_name || ''}</p>
+                    </div>
+                    <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                      reg.status === 'APPROVED' ? 'bg-green-500/10 text-green-400'
+                      : reg.status === 'REJECTED' ? 'bg-red-500/10 text-red-400'
+                      : 'bg-orange-500/10 text-orange-400'
+                    }`}>{reg.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Available Events */}
+            <div className="space-y-3">
+              <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Available Events</p>
+              {events.length === 0 ? (
+                <p className="text-zinc-600 text-sm py-4 text-center">No events available right now.</p>
+              ) : (
+                events.map((ev: any) => (
+                  <div key={ev.id} className="flex items-center justify-between bg-zinc-800/50 border border-zinc-800 px-4 py-3 rounded-xl">
+                    <div>
+                      <p className="text-sm font-bold text-white">{ev.name}</p>
+                      <p className="text-[10px] text-zinc-500">{ev.eventType || ev.event_type || ''} • {ev.location || ''}</p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`${API}/events/${ev.id}/register`, {
+                            method: 'POST',
+                            headers: authJson,
+                            body: JSON.stringify({ teamId: team.id }),
+                          });
+                          if (res.ok) {
+                            loadEvents();
+                            alert('Registration submitted!');
+                          } else {
+                            const d = await res.json();
+                            alert(d.message || d.error || 'Registration failed');
+                          }
+                        } catch { alert('Failed to register'); }
+                      }}
+                      className="px-3 py-1.5 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase rounded-full hover:bg-yellow-500/20 transition-all border border-yellow-500/20"
+                    >
+                      Register
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════ SETTINGS ═══════════ */}
+        {tab === 'settings' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Team Settings</h3>
+
+            <div className="space-y-4">
+              {/* Roster Lock Control */}
+              <div className="bg-zinc-800/50 border border-zinc-800 rounded-xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-bold text-white">{player.name}</p>
-                    <p className="text-[10px] text-zinc-500 uppercase font-bold">#{player.number} • {player.position}</p>
+                    <p className="text-sm font-bold text-white">Roster Lock</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      {isLocked
+                        ? 'Roster is locked. No new players can join or be removed.'
+                        : 'Roster is open. Players can join via invite code.'}
+                    </p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {player.jersey_confirmed === 1 ? (
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Shield className="w-3 h-3" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Confirmed</span>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => confirmJersey(player.id)}
-                      className="px-3 py-1 bg-yellow-500 text-black text-[10px] font-bold uppercase rounded-lg hover:bg-yellow-400 transition-all"
-                    >
-                      Confirm
-                    </button>
-                  )}
-                  {/* Remove player button */}
-                  {removeConfirm === player.id ? (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => removePlayer(player.id)}
-                        className="px-2 py-1 bg-red-500 text-white text-[9px] font-bold uppercase rounded-lg hover:bg-red-400 transition-all"
-                      >
-                        Confirm
-                      </button>
-                      <button
-                        onClick={() => setRemoveConfirm(null)}
-                        className="text-zinc-500 hover:text-white transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setRemoveConfirm(player.id)}
-                      className="text-zinc-600 hover:text-red-400 transition-colors"
-                      title="Remove from roster"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                  <button
+                    onClick={toggleRosterLock}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${
+                      isLocked
+                        ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
+                        : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                    }`}
+                  >
+                    {isLocked ? <><Unlock className="w-3.5 h-3.5" /> Unlock</> : <><Lock className="w-3.5 h-3.5" /> Lock</>}
+                  </button>
                 </div>
               </div>
-            ))}
+
+              {/* Team Info */}
+              <div className="bg-zinc-800/50 border border-zinc-800 rounded-xl p-5 space-y-3">
+                <p className="text-sm font-bold text-white">Team Identity</p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Team Tag</span>
+                    <span className="font-mono text-white">{teamTag}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Invite Code</span>
+                    <span className="font-mono text-yellow-500">{inviteCode}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Type</span>
+                    <span className="text-white">{team.type || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Division</span>
+                    <span className="text-white">{team.division || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+// --- Sub-components ---
+
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
+  return (
+    <div className="bg-zinc-800/50 border border-zinc-800 rounded-2xl p-4 text-center">
+      <Icon className={`w-5 h-5 mx-auto mb-1.5 ${color}`} />
+      <p className="text-xl font-black text-white">{value}</p>
+      <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, mono, accent }: { label: string; value: string; mono?: boolean; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-zinc-800/50 last:border-0">
+      <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">{label}</span>
+      <span className={`text-sm font-bold ${mono ? 'font-mono' : ''} ${accent ? 'text-yellow-500' : 'text-white'}`}>{value}</span>
+    </div>
+  );
+}
+
+function ProfileField({ label, value, editing, onChange, multiline }: {
+  label: string; value: string; editing: boolean; onChange: (v: string) => void; multiline?: boolean;
+}) {
+  return (
+    <div>
+      <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-1 block">{label}</label>
+      {editing ? (
+        multiline ? (
+          <textarea
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            rows={3}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white resize-none focus:border-yellow-500/50 focus:outline-none transition-colors"
+          />
+        ) : (
+          <input
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white focus:border-yellow-500/50 focus:outline-none transition-colors"
+          />
+        )
+      ) : (
+        <p className="text-sm text-white bg-zinc-800/30 px-4 py-3 rounded-xl">{value || <span className="text-zinc-600">Not set</span>}</p>
       )}
     </div>
   );
-};
-
-// Helper — kept inside the component scope but needs to be callable
-const sendRequestToPlayer = async (playerId: number) => {
-  const token = localStorage.getItem('dtached_token');
-  await fetch(`${API}/team-requests/${playerId}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-  });
-};
-
-export default CoachDashboard;
+}

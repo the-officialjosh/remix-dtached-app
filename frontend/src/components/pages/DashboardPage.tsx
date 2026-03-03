@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import PlayerDashboard from './PlayerDashboard';
 import AdminPage from './AdminPage';
+import CoachDashboard from '../admin/CoachDashboard';
 import type { Player, TeamStandings, Game } from '../../types';
 import { fetchTournamentData } from '../../lib/api';
 
@@ -40,8 +41,8 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
   }, []);
 
   useEffect(() => {
-    if (isAdmin || isCoach) loadData();
-  }, [isAdmin, isCoach, loadData]);
+    if (isAdmin) loadData();
+  }, [isAdmin, loadData]);
 
   const handleResend = async () => {
     setResending(true);
@@ -101,8 +102,6 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </div>
 
-
-
       {/* Player-specific dashboard */}
       {isPlayer && (
         <div className="mt-4">
@@ -110,8 +109,15 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       )}
 
-      {/* Admin/Coach Management Console — embedded right in the dashboard */}
-      {(isAdmin || isCoach) && (
+      {/* Coach gets focused team dashboard */}
+      {isCoach && !isAdmin && (
+        <div className="mt-4">
+          <CoachDashboard onUpdate={loadData} />
+        </div>
+      )}
+
+      {/* Admin gets full management console */}
+      {isAdmin && (
         <div className="mt-4 space-y-8">
           <AdminPage
             adminSubTab={adminSubTab}
@@ -126,3 +132,4 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
     </motion.div>
   );
 }
+
