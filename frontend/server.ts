@@ -164,7 +164,7 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   const wss = new WebSocketServer({ server });
-  const PORT = 3000;
+  const PORT = 4000;
 
   app.use(express.json());
 
