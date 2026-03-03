@@ -19,7 +19,11 @@ const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export default function CoachDashboard({ onUpdate }: { onUpdate: () => void }) {
+import type { Player } from '../../types';
+import { useAuth } from '../../lib/AuthContext';
+
+export default function CoachDashboard({ onUpdate, players }: { onUpdate: () => void, players?: Player[] }) {
+  const { user } = useAuth();
   const token = localStorage.getItem('dtached_token');
   const [tab, setTab] = useState<Tab>('overview');
   const [team, setTeam] = useState<any>(null);
@@ -141,6 +145,21 @@ export default function CoachDashboard({ onUpdate }: { onUpdate: () => void }) {
   }
 
   if (!team) {
+    if (user?.role === 'TEAM_MANAGER') {
+      return (
+        <div className="max-w-xl mx-auto py-16 text-center space-y-4">
+          <Shield className="w-16 h-16 text-zinc-700 mx-auto" />
+          <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">No Team Assigned</h2>
+          <p className="text-zinc-400">
+            As a Team Manager, you cannot register a new team yourself. You must be added to a team's staff by a Head Coach or Administrator.
+          </p>
+          <p className="text-sm text-zinc-500">
+            Once you are added to a team, your dashboard will appear here automatically.
+          </p>
+        </div>
+      );
+    }
+    
     return (
       <div className="max-w-xl mx-auto py-8">
         <TeamRegistration onComplete={() => { loadTeam(); onUpdate(); }} />

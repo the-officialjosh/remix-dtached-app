@@ -106,6 +106,7 @@ public class DataSeeder implements CommandLineRunner {
         teamStaffRepository.save(TeamStaff.builder().user(coach2).team(warriors).role(TeamStaffRole.HEAD_COACH).build());
         teamStaffRepository.save(TeamStaff.builder().user(coach3).team(valkyries).role(TeamStaffRole.HEAD_COACH).build());
         teamStaffRepository.save(TeamStaff.builder().user(coach4).team(sirens).role(TeamStaffRole.HEAD_COACH).build());
+        teamStaffRepository.save(TeamStaff.builder().user(userRepository.findByEmail("manager@dtached.com").get()).team(titans).role(TeamStaffRole.TEAM_MANAGER).build());
 
         // --- Players ---
         playerRepository.save(Player.builder()

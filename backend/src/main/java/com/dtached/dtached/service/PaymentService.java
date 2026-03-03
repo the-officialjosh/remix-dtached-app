@@ -272,4 +272,40 @@ public class PaymentService {
                 "pendingPayments", all.size() - completed.size()
         );
     }
+
+    /**
+     * Team-level payment summary.
+     */
+    public Map<String, Object> getTeamPaymentSummary(Long teamId) {
+        teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        List<Payment> teamPayments = paymentRepository.findByTeamId(teamId);
+        
+        long totalPaid = teamPayments.stream()
+                .filter(p -> "COMPLETED".equals(p.getStatus()))
+                .mapToLong(Payment::getAmountCents).sum();
+                
+        long totalOutstanding = teamPayments.stream()
+                .filter(p -> "PENDING".equals(p.getStatus()))
+                .mapToLong(Payment::getAmountCents).sum();
+
+        // Find which players have completed player cards
+        List<Payment> playerPayments = paymentRepository.findAll().stream()
+                .filter(p -> "PLAYER_CARD".equals(p.getPaymentType()) && "COMPLETED".equals(p.getStatus()))
+                .toList();
+                
+        List<Long> verifiedPlayerIds = playerPayments.stream()
+                .map(Payment::getPlayerId)
+                .filter(id -> id != null)
+                .toList();
+
+        return Map.of(
+                "teamId", teamId,
+                "totalPaidCents", totalPaid,
+                "totalOutstandingCents", totalOutstanding,
+                "verifiedPlayerIds", verifiedPlayerIds,
+                "payments", teamPayments
+        );
+    }
 }

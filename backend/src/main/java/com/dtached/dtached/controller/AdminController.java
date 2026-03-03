@@ -2,11 +2,14 @@ package com.dtached.dtached.controller;
 
 import com.dtached.dtached.dto.*;
 import com.dtached.dtached.model.PlayerInterest;
+import com.dtached.dtached.model.TeamOnboardingRequest;
 import com.dtached.dtached.model.TeamRequest;
 import com.dtached.dtached.repository.PlayerRepository;
 import com.dtached.dtached.repository.TeamRequestRepository;
 import com.dtached.dtached.service.AdminService;
 import com.dtached.dtached.service.MatchingService;
+import com.dtached.dtached.service.PaymentService;
+import com.dtached.dtached.service.TeamOnboardingService;
 import com.dtached.dtached.service.TransferService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +30,8 @@ public class AdminController {
     private final PlayerRepository playerRepository;
     private final MatchingService matchingService;
     private final TransferService transferService;
+    private final TeamOnboardingService teamOnboardingService;
+    private final PaymentService paymentService;
 
     // ─── Dashboard ───
     @GetMapping("/dashboard")
@@ -152,5 +157,36 @@ public class AdminController {
     public ResponseEntity<?> rejectMatch(@PathVariable Long id) {
         matchingService.adminRejectMatch(id);
         return ResponseEntity.ok(Map.of("message", "Match rejected"));
+    }
+
+    // ─── Team Onboarding ───
+
+    /** Provision a new team with coach + manager accounts */
+    @PostMapping("/teams/onboard")
+    public ResponseEntity<OnboardingResultDTO> provisionTeam(@RequestBody TeamOnboardingDTO dto) {
+        return ResponseEntity.status(201).body(teamOnboardingService.provisionTeam(dto));
+    }
+
+    /** List all onboarding requests */
+    @GetMapping("/onboarding-requests")
+    public ResponseEntity<List<TeamOnboardingRequest>> getOnboardingRequests() {
+        return ResponseEntity.ok(teamOnboardingService.getAllRequests());
+    }
+
+    /** Reject an onboarding request */
+    @PutMapping("/onboarding-requests/{id}/reject")
+    public ResponseEntity<Map<String, String>> rejectOnboardingRequest(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body
+    ) {
+        String notes = body != null ? body.getOrDefault("notes", "") : "";
+        teamOnboardingService.rejectRequest(id, notes);
+        return ResponseEntity.ok(Map.of("message", "Onboarding request rejected"));
+    }
+
+    /** Team-level payment summary */
+    @GetMapping("/teams/{id}/payment-summary")
+    public ResponseEntity<Map<String, Object>> getTeamPaymentSummary(@PathVariable Long id) {
+        return ResponseEntity.ok(paymentService.getTeamPaymentSummary(id));
     }
 }

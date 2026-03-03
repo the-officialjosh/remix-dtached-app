@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -214,6 +215,57 @@ public class PlayerService {
         player.setTeam(null);
         player.setStatus("RELEASED");
         player.setOpenToOffers(false);
+        playerRepository.save(player);
+    }
+
+    /**
+     * Update player's football profile.
+     * Permission-split logic: Coach or Team Manager on the same team can edit certain fields.
+     */
+    @Transactional
+    public void updateFootballProfile(String staffEmail, Long playerId, Map<String, String> data) {
+        User staff = userRepository.findByEmail(staffEmail)
+                .orElseThrow(() -> new RuntimeException("Staff user not found"));
+
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        if (player.getTeam() == null) {
+            throw new IllegalStateException("Player is not on a team");
+        }
+        
+        // Ensure staff is on the SAME team
+        boolean isStaffOnTeam = player.getTeam().getStaff().stream()
+                .anyMatch(ts -> ts.getUser().getId().equals(staff.getId()));
+                
+        if (!isStaffOnTeam) {
+            throw new IllegalStateException("You are not authorized to edit this player's profile");
+        }
+
+        // Apply changes
+        if (data.containsKey("bio")) player.setBio(data.get("bio"));
+        if (data.containsKey("position")) player.setPosition(data.get("position"));
+        if (data.containsKey("number")) {
+            try {
+                player.setNumber(Integer.parseInt(data.get("number")));
+            } catch (NumberFormatException e) {
+                // ignore invalid number formatting
+            }
+        }
+        
+        if (data.containsKey("height")) player.setHeight(data.get("height"));
+        if (data.containsKey("weight")) player.setWeight(data.get("weight"));
+        
+        if (data.containsKey("jerseySize")) player.setJerseySize(data.get("jerseySize"));
+        if (data.containsKey("shortsSize")) player.setShortsSize(data.get("shortsSize"));
+        
+        if (data.containsKey("schoolClub")) player.setSchoolClub(data.get("schoolClub"));
+        if (data.containsKey("videoUrl")) player.setVideoUrl(data.get("videoUrl"));
+        
+        if (data.containsKey("openToOffers")) {
+            player.setOpenToOffers(Boolean.parseBoolean(data.get("openToOffers")));
+        }
+
         playerRepository.save(player);
     }
 }

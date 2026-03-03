@@ -14,4 +14,5 @@ public class AuthResponse {
     private Long userId;
     private boolean emailConfirmed;
     private boolean needsRole;    // true if role hasn't been selected yet
+    private boolean mustResetPassword; // true for admin-provisioned accounts on first login
 }

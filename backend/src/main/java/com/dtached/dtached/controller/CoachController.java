@@ -2,12 +2,10 @@ package com.dtached.dtached.controller;
 
 import com.dtached.dtached.dto.PlayerSummaryDTO;
 import com.dtached.dtached.dto.TeamDTO;
-import com.dtached.dtached.dto.TeamRegistrationRequest;
 import com.dtached.dtached.model.TeamRequest;
 import com.dtached.dtached.service.PlayerService;
 import com.dtached.dtached.service.TeamRequestService;
 import com.dtached.dtached.service.TeamService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,16 +25,7 @@ public class CoachController {
     private final TeamRequestService teamRequestService;
 
     // ---- Team management ----
-
-    @PostMapping("/api/teams/register")
-    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
-    public ResponseEntity<TeamDTO> registerTeam(
-            Authentication auth,
-            @Valid @RequestBody TeamRegistrationRequest request
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(teamService.registerTeam(auth.getName(), request));
-    }
+    // Teams are now provisioned by admin, not self-registered by coaches
 
     @GetMapping("/api/my/team")
     @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
@@ -158,6 +147,19 @@ public class CoachController {
     ) {
         teamRequestService.coachRejectRequest(auth.getName(), id);
         return ResponseEntity.ok(Map.of("message", "Join request rejected"));
+    }
+
+    // ---- Player football profile editing (permission-split) ----
+
+    @PutMapping("/api/my/team/players/{playerId}/football-profile")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> editPlayerFootballProfile(
+            Authentication auth,
+            @PathVariable Long playerId,
+            @RequestBody Map<String, String> body
+    ) {
+        playerService.updateFootballProfile(auth.getName(), playerId, body);
+        return ResponseEntity.ok(Map.of("message", "Player football profile updated"));
     }
 }
 

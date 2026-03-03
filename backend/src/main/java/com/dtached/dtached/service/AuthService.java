@@ -79,6 +79,34 @@ public class AuthService {
         return buildResponse(user, token);
     }
 
+    /**
+     * Force-reset password for admin-provisioned accounts on first login.
+     */
+    @Transactional
+    public AuthResponse forceResetPassword(String email, String newPassword) {
+        User user = userRepository.findByEmail(email.toLowerCase(Locale.ROOT).trim())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!Boolean.TRUE.equals(user.getMustResetPassword())) {
+            throw new IllegalStateException("Password reset not required for this account");
+        }
+
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setMustResetPassword(false);
+        userRepository.save(user);
+
+        log.info("🔑 FORCE PASSWORD RESET completed for {}", email);
+
+        String roleName = user.getRole() != null ? user.getRole().name() : "UNCONFIRMED";
+        String token = jwtService.generateToken(user.getEmail(), roleName);
+
+        return buildResponse(user, token);
+    }
+
     @Transactional
     public AuthResponse confirmEmail(String confirmToken) {
         User user = userRepository.findByConfirmationToken(confirmToken)
@@ -200,6 +228,7 @@ public class AuthService {
                 .userId(user.getId())
                 .emailConfirmed(Boolean.TRUE.equals(user.getEmailConfirmed()))
                 .needsRole(user.getRole() == null)
+                .mustResetPassword(Boolean.TRUE.equals(user.getMustResetPassword()))
                 .build();
     }
 }

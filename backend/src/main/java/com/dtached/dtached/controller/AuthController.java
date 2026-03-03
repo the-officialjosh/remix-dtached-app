@@ -77,4 +77,16 @@ public class AuthController {
         authService.resetPassword(token, password);
         return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
     }
+
+    @PostMapping("/force-reset-password")
+    public ResponseEntity<AuthResponse> forceResetPassword(
+            Authentication authentication,
+            @RequestBody Map<String, String> body
+    ) {
+        String newPassword = body.get("newPassword");
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters");
+        }
+        return ResponseEntity.ok(authService.forceResetPassword(authentication.getName(), newPassword));
+    }
 }

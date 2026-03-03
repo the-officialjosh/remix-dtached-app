@@ -15,11 +15,11 @@ import TransferQueue from '../admin/TransferQueue';
 import UsersManagement from '../admin/UsersManagement';
 import RevenuePanel from '../admin/RevenuePanel';
 import EventManagement from '../admin/EventManagement';
-import CoachApplicationsPanel from '../admin/CoachApplicationsPanel';
+import TeamOnboardingPanel from '../admin/TeamOnboardingPanel';
 import { Shield, ShieldAlert, Users, Trophy, UserCheck, Clock, Zap, Heart, ClipboardList, BookUser, Video, Briefcase, DollarSign, Calendar, ClipboardCheck } from 'lucide-react';
 import { API_URL as API } from '../../lib/api';
 
-type SubTab = 'teams' | 'players' | 'stats' | 'matchups' | 'requests' | 'matches' | 'directory' | 'needs' | 'staff' | 'transfers' | 'users' | 'revenue' | 'events' | 'applications';
+type SubTab = 'teams' | 'players' | 'stats' | 'matchups' | 'requests' | 'matches' | 'directory' | 'needs' | 'staff' | 'transfers' | 'users' | 'revenue' | 'events' | 'onboarding';
 
 interface AdminPageProps {
   adminSubTab: 'teams' | 'players' | 'stats' | 'matchups';
@@ -75,7 +75,7 @@ export default function AdminPage({
     { key: 'users', label: 'Users', icon: Users, adminOnly: true },
     { key: 'revenue', label: 'Revenue', icon: DollarSign, adminOnly: true },
     { key: 'events', label: 'Events', icon: Calendar, adminOnly: true },
-    { key: 'applications', label: 'Applications', icon: ClipboardCheck, adminOnly: true },
+    { key: 'onboarding', label: 'Onboarding', icon: ClipboardCheck, adminOnly: true },
     { key: 'players', label: 'Roster', icon: UserCheck },
     { key: 'stats', label: 'Stats', icon: Zap },
     { key: 'matchups', label: 'Games', icon: Shield },
@@ -135,11 +135,11 @@ export default function AdminPage({
         {currentTab === 'matches' && isAdmin && <MatchApprovals />}
         {currentTab === 'directory' && isAdmin && <PlayerDirectory />}
         {currentTab === 'transfers' && isAdmin && <TransferQueue />}
-        {currentTab === 'users' && isAdmin && <UsersManagement />}
-        {currentTab === 'revenue' && isAdmin && <RevenuePanel />}
-        {currentTab === 'events' && isAdmin && <EventManagement />}
-        {currentTab === 'applications' && isAdmin && <CoachApplicationsPanel />}
-        {currentTab === 'staff' && <StaffPanel games={games} onUpdate={onUpdate} />}
+        { currentTab === 'users' && isAdmin && <UsersManagement /> }
+        { currentTab === 'revenue' && isAdmin && <RevenuePanel /> }
+        { currentTab === 'events' && isAdmin && <EventManagement /> }
+        { currentTab === 'onboarding' && isAdmin && <TeamOnboardingPanel /> }
+        { currentTab === 'staff' && <StaffPanel games={games} onUpdate={onUpdate} /> }
 
         {(currentTab === 'teams' || currentTab === 'players' || currentTab === 'matchups') && (
           <div className="mt-12 border-t border-zinc-800 pt-12">
