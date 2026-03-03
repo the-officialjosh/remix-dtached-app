@@ -423,6 +423,28 @@ app.get("/api/leaderboard", (req, res) => {
     res.json({ success: true });
   });
 
+  // Proxy unmapped /api routes to Spring Boot backend (Docker)
+  app.use("/api", async (req, res, next) => {
+    const backendUrl = `http://localhost:8080${req.originalUrl}`;
+    try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (req.headers.authorization) headers["Authorization"] = req.headers.authorization as string;
+      const fetchOpts: any = { method: req.method, headers };
+      if (req.method !== "GET" && req.method !== "HEAD" && req.body) {
+        fetchOpts.body = JSON.stringify(req.body);
+      }
+      const upstream = await fetch(backendUrl, fetchOpts);
+      res.status(upstream.status);
+      upstream.headers.forEach((v, k) => { if (k !== "transfer-encoding") res.setHeader(k, v); });
+      const text = await upstream.text();
+      res.send(text);
+    } catch (e: any) {
+      // Backend not reachable — fall through
+      console.error(`[proxy] ${req.method} ${req.originalUrl} → backend error:`, e.message);
+      res.status(502).json({ error: "Backend not reachable" });
+    }
+  });
+
   // Error handler
   app.use((err: any, req: any, res: any, next: any) => {
     console.error(err.stack);
