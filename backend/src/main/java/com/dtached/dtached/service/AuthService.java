@@ -115,8 +115,10 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid role: " + roleStr);
         }
 
-        if (role == UserRole.ADMIN || role == UserRole.STAFF) {
-            throw new IllegalArgumentException("Cannot self-select " + role);
+        if (role == UserRole.ADMIN || role == UserRole.STAFF
+                || role == UserRole.COACH || role == UserRole.TEAM_MANAGER) {
+            throw new IllegalArgumentException(
+                    "Cannot self-select " + role + ". Coach and team manager access requires application and admin approval.");
         }
 
         user.setRole(role);

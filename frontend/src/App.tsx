@@ -25,6 +25,7 @@ import AdminPage from './components/pages/AdminPage';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
 import RoleSelectionPage from './components/pages/RoleSelectionPage';
+import CoachApplicationPage from './components/pages/CoachApplicationPage';
 import DashboardPage from './components/pages/DashboardPage';
 import ProfilePage from './components/pages/ProfilePage';
 import ForgotPasswordPage from './components/pages/ForgotPasswordPage';
@@ -40,6 +41,7 @@ function AppContent() {
   const { isAuthenticated, isAdmin, isCoach, user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('home');
   const [adminSubTab, setAdminSubTab] = useState<'teams' | 'players' | 'stats' | 'matchups'>('teams');
+  const [coachApplying, setCoachApplying] = useState(false);
   const [tournamentType, setTournamentType] = useState<'7v7' | 'Flag'>('7v7');
   const [players, setPlayers] = useState<Player[]>([]);
   const [teams, setTeams] = useState<TeamStandings[]>([]);
@@ -156,7 +158,11 @@ function AppContent() {
           {/* Force role selection if needed */}
           {showRoleSelection ? (
             <motion.div key="role-select" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <RoleSelectionPage />
+              {coachApplying ? (
+                <CoachApplicationPage onBack={() => setCoachApplying(false)} />
+              ) : (
+                <RoleSelectionPage onApplyAsCoach={() => setCoachApplying(true)} />
+              )}
             </motion.div>
           ) : (
             <>
