@@ -164,6 +164,7 @@ public class DataSeeder implements CommandLineRunner {
                 .eventType("CAMP")
                 .requiredFields("[\"jersey_size\",\"shorts_size\"]")
                 .entryFee(BigDecimal.valueOf(100.00))
+                .bannerUrl("/camp.png")
                 .build());
 
         TournamentEvent tourney = eventRepository.save(TournamentEvent.builder()
@@ -179,6 +180,7 @@ public class DataSeeder implements CommandLineRunner {
                 .eventType("TOURNAMENT")
                 .requiredFields("[\"team_name\",\"category\",\"video_url\"]")
                 .entryFee(BigDecimal.valueOf(90.00))
+                .bannerUrl("/tournoi.png")
                 .build());
 
         // Divisions: 7v7 Boys & Flag Girls

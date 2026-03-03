@@ -369,8 +369,13 @@ export default function EventsPage() {
 
         {/* Event Header */}
         <div className="relative h-56 bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-zinc-900 rounded-3xl flex items-center justify-center overflow-hidden">
-          {(() => { const Icon = getEventIcon(selectedEvent.name, selectedEvent.eventType); return <Icon className="w-24 h-24 text-yellow-500/30" />; })()}
-          <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent">
+          {selectedEvent.bannerUrl ? (
+            <img src={selectedEvent.bannerUrl} alt={selectedEvent.name} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            (() => { const Icon = getEventIcon(selectedEvent.name, selectedEvent.eventType); return <Icon className="w-24 h-24 text-yellow-500/30" />; })()
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-8">
             <div className="flex items-end justify-between">
               <div>
                 <span className={cn('px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 inline-block',
@@ -467,10 +472,17 @@ export default function EventsPage() {
               <div key={event.id} onClick={() => selectEvent(event)}
                 className={cn("group cursor-pointer bg-zinc-900/80 border rounded-3xl overflow-hidden hover:border-yellow-500/30 transition-all duration-300 hover:-translate-y-1",
                   isPast ? "border-zinc-800/50 opacity-60" : "border-zinc-800")}>
-                <div className="relative h-40 bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-zinc-900 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon className="w-10 h-10 text-yellow-500" />
-                  </div>
+                <div className="relative h-40 bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-zinc-900 flex items-center justify-center overflow-hidden">
+                  {event.bannerUrl ? (
+                    <>
+                      <img src={event.bannerUrl} alt={event.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-black/30" />
+                    </>
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Icon className="w-10 h-10 text-yellow-500" />
+                    </div>
+                  )}
                   <div className="absolute top-4 right-4">
                     <span className={cn('px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
                       event.eventType === 'CAMP' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
