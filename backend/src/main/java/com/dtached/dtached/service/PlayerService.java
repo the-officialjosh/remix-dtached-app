@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,6 +63,10 @@ public class PlayerService {
                 .shortsSize(request.getShortsSize())
                 .status("FREE_AGENT");
 
+        // Auto-generate permanent player tag
+        String playerTag = "PLR-" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+        builder.playerTag(playerTag);
+
         Player player = playerRepository.save(builder.build());
 
         // If invite code provided, create a PENDING join request (admin must approve)
@@ -71,6 +76,11 @@ public class PlayerService {
 
             if (!"APPROVED".equals(team.getStatus())) {
                 throw new IllegalStateException("This team is not accepting players");
+            }
+
+            // Check roster lock
+            if (Boolean.TRUE.equals(team.getRosterLocked())) {
+                throw new IllegalStateException("This team's roster is locked");
             }
 
             com.dtached.dtached.model.TeamRequest joinRequest = com.dtached.dtached.model.TeamRequest.builder()

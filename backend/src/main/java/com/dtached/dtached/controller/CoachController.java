@@ -122,4 +122,42 @@ public class CoachController {
         playerService.releasePlayer(auth.getName(), playerId);
         return ResponseEntity.ok(Map.of("message", "Player released from roster"));
     }
+
+    // ---- Roster unlock ----
+
+    @PutMapping("/api/my/team/roster/unlock")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> unlockRoster(Authentication auth) {
+        teamService.unlockRoster(auth.getName());
+        return ResponseEntity.ok(Map.of("message", "Roster unlocked"));
+    }
+
+    // ---- Coach pending join requests (from invite codes) ----
+
+    @GetMapping("/api/my/team/requests")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<List<TeamRequest>> getCoachPendingRequests(Authentication auth) {
+        return ResponseEntity.ok(teamRequestService.getCoachPendingRequests(auth.getName()));
+    }
+
+    @PutMapping("/api/my/team/requests/{id}/approve")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> coachApproveRequest(
+            Authentication auth,
+            @PathVariable Long id
+    ) {
+        teamRequestService.coachApproveRequest(auth.getName(), id);
+        return ResponseEntity.ok(Map.of("message", "Player approved and added to roster"));
+    }
+
+    @PutMapping("/api/my/team/requests/{id}/reject")
+    @PreAuthorize("hasAnyRole('COACH', 'TEAM_MANAGER')")
+    public ResponseEntity<Map<String, String>> coachRejectRequest(
+            Authentication auth,
+            @PathVariable Long id
+    ) {
+        teamRequestService.coachRejectRequest(auth.getName(), id);
+        return ResponseEntity.ok(Map.of("message", "Join request rejected"));
+    }
 }
+

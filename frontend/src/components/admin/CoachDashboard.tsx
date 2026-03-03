@@ -26,6 +26,9 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
   const [needPosition, setNeedPosition] = useState('WR');
   const [needCount, setNeedCount] = useState(1);
 
+  // Pending join requests (from invite codes)
+  const [pendingJoins, setPendingJoins] = useState<any[]>([]);
+
   const authHeaders = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
@@ -54,6 +57,12 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
       .then(res => res.ok ? res.json() : [])
       .then(setRequests)
       .catch(() => setRequests([]));
+
+    // Load coach's pending join requests
+    fetch(`${API}/my/team/requests`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.ok ? res.json() : [])
+      .then(setPendingJoins)
+      .catch(() => setPendingJoins([]));
   }, [token]);
 
   const loadFreeAgents = async () => {
@@ -114,7 +123,34 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
       method: 'PUT',
       headers: authHeaders,
     });
+    setMyTeam({ ...myTeam, rosterLocked: true });
     onUpdate();
+  };
+
+  const unlockRoster = async () => {
+    await fetch(`${API}/my/team/roster/unlock`, {
+      method: 'PUT',
+      headers: authHeaders,
+    });
+    setMyTeam({ ...myTeam, rosterLocked: false });
+    onUpdate();
+  };
+
+  const approveJoin = async (id: number) => {
+    await fetch(`${API}/my/team/requests/${id}/approve`, {
+      method: 'PUT',
+      headers: authHeaders,
+    });
+    setPendingJoins(pendingJoins.filter(r => r.id !== id));
+    onUpdate();
+  };
+
+  const rejectJoin = async (id: number) => {
+    await fetch(`${API}/my/team/requests/${id}/reject`, {
+      method: 'PUT',
+      headers: authHeaders,
+    });
+    setPendingJoins(pendingJoins.filter(r => r.id !== id));
   };
 
   // Invite by email
@@ -199,10 +235,14 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
               {myTeam.status} • {teamPlayers.length} Players
             </span>
             <button
-              onClick={lockRoster}
-              className="px-4 py-1.5 bg-red-500/10 text-red-400 text-[10px] font-bold uppercase rounded-full hover:bg-red-500/20 transition-all"
+              onClick={myTeam.rosterLocked ? unlockRoster : lockRoster}
+              className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-full transition-all ${
+                myTeam.rosterLocked
+                  ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
+                  : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+              }`}
             >
-              Lock Roster
+              {myTeam.rosterLocked ? '🔓 Unlock Roster' : '🔒 Lock Roster'}
             </button>
             <button
               onClick={async () => {
@@ -224,12 +264,57 @@ const CoachDashboard = ({ onUpdate, players }: { onUpdate: () => void; players: 
           </div>
         </div>
         {(myTeam.invite_code || myTeam.inviteCode) && (
-          <div className="flex items-center gap-2 bg-zinc-800/50 px-4 py-2 rounded-xl">
-            <span className="text-[10px] text-zinc-500 uppercase font-bold">Team Invite Code:</span>
+          <div className="flex items-center gap-4 bg-zinc-800/50 px-4 py-2 rounded-xl">
+            {(myTeam.team_tag || myTeam.teamTag) && (
+              <>
+                <span className="text-[10px] text-zinc-500 uppercase font-bold">Team Tag:</span>
+                <span className="text-sm font-mono text-white font-bold">{myTeam.team_tag || myTeam.teamTag}</span>
+                <span className="text-zinc-700">|</span>
+              </>
+            )}
+            <span className="text-[10px] text-zinc-500 uppercase font-bold">Invite Code:</span>
             <span className="text-sm font-mono text-yellow-500 font-bold">{myTeam.invite_code || myTeam.inviteCode}</span>
           </div>
         )}
       </div>
+
+      {/* Pending Join Requests (from invite codes) */}
+      {pendingJoins.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold text-white italic uppercase tracking-tighter flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-blue-400" /> Pending Join Requests
+            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-black rounded-full">{pendingJoins.length}</span>
+          </h3>
+          <div className="space-y-2">
+            {pendingJoins.map((r: any) => (
+              <div key={r.id} className="flex items-center justify-between bg-blue-500/5 border border-blue-500/20 px-4 py-3 rounded-xl">
+                <div>
+                  <p className="text-sm font-bold text-white">
+                    {r.player?.firstName || r.player?.first_name} {r.player?.lastName || r.player?.last_name}
+                  </p>
+                  <p className="text-[10px] text-zinc-500">
+                    {r.player?.position || 'No position'} • {r.requestType === 'TRANSFER' ? 'Transfer' : 'Join'} • {r.direction}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => approveJoin(r.id)}
+                    className="px-3 py-1.5 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase rounded-full hover:bg-green-500/20 transition-all"
+                  >
+                    ✓ Approve
+                  </button>
+                  <button
+                    onClick={() => rejectJoin(r.id)}
+                    className="px-3 py-1.5 bg-red-500/10 text-red-400 text-[10px] font-bold uppercase rounded-full hover:bg-red-500/20 transition-all"
+                  >
+                    ✗ Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Interest Notifications */}
       {(matchedInterests.length > 0 || pendingInterests.length > 0) && (

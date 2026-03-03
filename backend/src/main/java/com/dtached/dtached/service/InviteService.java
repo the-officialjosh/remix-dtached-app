@@ -87,6 +87,11 @@ public class InviteService {
 
         Team targetTeam = invite.getTeam();
 
+        // Check roster lock
+        if (Boolean.TRUE.equals(targetTeam.getRosterLocked())) {
+            throw new IllegalStateException("This team's roster is locked. No new players can join.");
+        }
+
         // Determine if this is a JOIN or TRANSFER
         boolean isTransfer = player.getTeam() != null;
         String requestType = isTransfer ? "TRANSFER" : "JOIN";
@@ -110,7 +115,7 @@ public class InviteService {
         invite.setStatus("USED");
         teamInviteRepository.save(invite);
 
-        return "Request submitted for " + targetTeam.getName() + ". Awaiting admin approval.";
+        return "Request submitted for " + targetTeam.getName() + ". Awaiting coach approval.";
     }
 
     /**

@@ -45,6 +45,13 @@ public class Team {
     @Builder.Default
     private String status = "PENDING";
 
+    @Column(name = "roster_locked", nullable = false)
+    @Builder.Default
+    private Boolean rosterLocked = false;
+
+    @Column(name = "team_tag", unique = true)
+    private String teamTag;
+
     @Column(nullable = false) @Builder.Default private Integer gp = 0;
     @Column(nullable = false) @Builder.Default private Integer wins = 0;
     @Column(nullable = false) @Builder.Default private Integer losses = 0;

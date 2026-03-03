@@ -82,9 +82,8 @@ public class Player {
     @Builder.Default
     private Boolean jerseyConfirmed = false;
 
-    @Column(name = "roster_locked", nullable = false)
-    @Builder.Default
-    private Boolean rosterLocked = false;
+    @Column(name = "player_tag", unique = true)
+    private String playerTag;
 
     @Column(columnDefinition = "TEXT")
     private String bio;

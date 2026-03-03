@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,9 @@ public class TeamService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        String teamTag = "DTX-" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+        String inviteCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
         Team team = teamRepository.save(Team.builder()
                 .name(request.getName().trim())
                 .type(request.getType())
@@ -40,6 +44,8 @@ public class TeamService {
                 .city(request.getCity())
                 .provinceState(request.getProvince())
                 .bio(request.getBio())
+                .teamTag(teamTag)
+                .inviteCode(inviteCode)
                 .status("PENDING") // Needs admin approval
                 .build());
 
@@ -73,9 +79,23 @@ public class TeamService {
                 .stream().findFirst()
                 .orElseThrow(() -> new RuntimeException("You are not on any team's staff"));
 
-        List<com.dtached.dtached.model.Player> players = playerRepository.findByTeamId(staff.getTeam().getId());
-        players.forEach(p -> p.setRosterLocked(true));
-        playerRepository.saveAll(players);
+        Team team = staff.getTeam();
+        team.setRosterLocked(true);
+        teamRepository.save(team);
+    }
+
+    @Transactional
+    public void unlockRoster(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        TeamStaff staff = teamStaffRepository.findByUserId(user.getId())
+                .stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("You are not on any team's staff"));
+
+        Team team = staff.getTeam();
+        team.setRosterLocked(false);
+        teamRepository.save(team);
     }
 
     @Transactional

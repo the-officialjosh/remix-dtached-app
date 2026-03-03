@@ -33,4 +33,5 @@ public class PlayerDTO {
     private String pendingTeamName;
     private String pendingCategory;
     private Integer jerseyConfirmed;
+    private String playerTag;
 }

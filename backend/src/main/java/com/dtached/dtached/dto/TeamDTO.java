@@ -27,5 +27,10 @@ public class TeamDTO {
     private String city;
     private String provinceState;
     private String bio;
+    private String teamTag;
+    private String inviteCode;
+    private Boolean rosterLocked;
+    private String status;
+    private String bannerUrl;
     private List<PlayerDTO> roster;
 }
