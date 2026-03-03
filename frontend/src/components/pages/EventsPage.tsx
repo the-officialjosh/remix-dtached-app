@@ -391,11 +391,10 @@ export default function EventsPage() {
         {selectedEvent.description && <p className="text-zinc-400 text-lg">{selectedEvent.description}</p>}
 
         {/* Info Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="bg-zinc-900 rounded-2xl p-4"><p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Dates</p><p className="text-white font-bold text-sm">{formatDate(selectedEvent.startDate)} — {formatDate(selectedEvent.endDate)}</p></div>
           {selectedEvent.city && <div className="bg-zinc-900 rounded-2xl p-4"><p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Location</p><p className="text-white font-bold text-sm">{selectedEvent.city}{selectedEvent.provinceState ? `, ${selectedEvent.provinceState}` : ''}</p></div>}
           <div className="bg-zinc-900 rounded-2xl p-4"><p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Format</p><p className="text-white font-bold text-sm">{selectedEvent.format}</p></div>
-          <div className="bg-zinc-900 rounded-2xl p-4"><p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Teams</p><p className="text-white font-bold text-sm">{selectedEvent.registeredTeams ?? 0}{selectedEvent.maxTeams ? ` / ${selectedEvent.maxTeams}` : ''}</p></div>
           {selectedEvent.registrationDeadline && <div className="bg-zinc-900 rounded-2xl p-4"><p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Deadline</p><p className="text-white font-bold text-sm">{formatDate(selectedEvent.registrationDeadline)}</p></div>}
         </div>
 
