@@ -3,6 +3,7 @@ package com.dtached.dtached.model;
 import com.dtached.dtached.model.enums.TeamStaffRole;
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "team_staff", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "team_id"}))
@@ -21,6 +22,7 @@ public class TeamStaff {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
+    @JsonIgnoreProperties("staff")
     private Team team;
 
     @Enumerated(EnumType.STRING)

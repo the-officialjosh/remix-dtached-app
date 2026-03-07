@@ -51,8 +51,11 @@ public class SecurityConfig {
                     // Admin endpoints — ADMIN only
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
+                    // Coach application endpoints (any authenticated user can apply)
+                    .requestMatchers(HttpMethod.POST, "/api/coach-applications").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/coach-applications/me").authenticated()
+
                     // Coach/Team Manager endpoints
-                    .requestMatchers(HttpMethod.POST, "/api/teams/register").hasAnyRole("COACH", "TEAM_MANAGER")
                     .requestMatchers("/api/free-agents/**").hasAnyRole("COACH", "TEAM_MANAGER")
                     .requestMatchers(HttpMethod.POST, "/api/team-requests/**").hasAnyRole("COACH", "TEAM_MANAGER")
                     .requestMatchers(HttpMethod.PUT, "/api/my/team/**").hasAnyRole("COACH", "TEAM_MANAGER")

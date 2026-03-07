@@ -28,6 +28,7 @@ public class AdminController {
     private final AdminService adminService;
     private final TeamRequestRepository teamRequestRepository;
     private final PlayerRepository playerRepository;
+    private final com.dtached.dtached.repository.UserRepository userRepository;
     private final MatchingService matchingService;
     private final TransferService transferService;
     private final TeamOnboardingService teamOnboardingService;
@@ -188,5 +189,44 @@ public class AdminController {
     @GetMapping("/teams/{id}/payment-summary")
     public ResponseEntity<Map<String, Object>> getTeamPaymentSummary(@PathVariable Long id) {
         return ResponseEntity.ok(paymentService.getTeamPaymentSummary(id));
+    }
+
+    // ========== USER MANAGEMENT ==========
+
+    /** List all users with optional role and search filters */
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search
+    ) {
+        com.dtached.dtached.model.enums.UserRole roleEnum = null;
+        if (role != null && !role.isBlank()) {
+            try {
+                roleEnum = com.dtached.dtached.model.enums.UserRole.valueOf(role);
+            } catch (IllegalArgumentException ignored) {}
+        }
+        String searchTerm = (search != null && !search.isBlank()) ? search : null;
+        var users = userRepository.searchUsers(roleEnum, searchTerm);
+        return ResponseEntity.ok(users);
+    }
+
+    /** Deactivate a user account */
+    @PutMapping("/users/{userId}/deactivate")
+    public ResponseEntity<?> deactivateUser(@PathVariable Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(false);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "User deactivated"));
+    }
+
+    /** Activate a user account */
+    @PutMapping("/users/{userId}/activate")
+    public ResponseEntity<?> activateUser(@PathVariable Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(true);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "User activated"));
     }
 }

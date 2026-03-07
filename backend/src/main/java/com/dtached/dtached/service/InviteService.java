@@ -62,21 +62,33 @@ public class InviteService {
      */
     @Transactional
     public String acceptInvite(String playerEmail, String code) {
-        TeamInvite invite = teamInviteRepository.findByInviteCode(code)
-                .orElseThrow(() -> new RuntimeException("Invalid invite code"));
-
-        if (!"PENDING".equals(invite.getStatus())) {
-            throw new IllegalStateException("This invite has already been " + invite.getStatus().toLowerCase());
-        }
-
-        if (invite.getExpiresAt() != null && invite.getExpiresAt().isBefore(LocalDateTime.now())) {
-            invite.setStatus("EXPIRED");
+        Team targetTeam = null;
+        
+        // 1. Try dynamic single-use invite
+        java.util.Optional<TeamInvite> optInvite = teamInviteRepository.findByInviteCode(code);
+        if (optInvite.isPresent()) {
+            TeamInvite invite = optInvite.get();
+            if (!"PENDING".equals(invite.getStatus())) {
+                throw new IllegalStateException("This invite has already been " + invite.getStatus().toLowerCase());
+            }
+            if (invite.getExpiresAt() != null && invite.getExpiresAt().isBefore(LocalDateTime.now())) {
+                invite.setStatus("EXPIRED");
+                teamInviteRepository.save(invite);
+                throw new IllegalStateException("This invite has expired");
+            }
+            if (invite.getEmail() != null && !invite.getEmail().equalsIgnoreCase(playerEmail)) {
+                throw new IllegalStateException("This invite is not for your email");
+            }
+            targetTeam = invite.getTeam();
+            
+            invite.setStatus("USED");
             teamInviteRepository.save(invite);
-            throw new IllegalStateException("This invite has expired");
-        }
-
-        if (invite.getEmail() != null && !invite.getEmail().equalsIgnoreCase(playerEmail)) {
-            throw new IllegalStateException("This invite is not for your email");
+        } else {
+            // 2. Try static team code
+            targetTeam = teamRepository.findAll().stream()
+                    .filter(t -> code.equalsIgnoreCase(t.getInviteCode()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Invalid invite code"));
         }
 
         User user = userRepository.findByEmail(playerEmail)
@@ -84,8 +96,6 @@ public class InviteService {
 
         Player player = playerRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new RuntimeException("You need a player profile first. Register as a player."));
-
-        Team targetTeam = invite.getTeam();
 
         // Check roster lock
         if (Boolean.TRUE.equals(targetTeam.getRosterLocked())) {
@@ -112,8 +122,10 @@ public class InviteService {
             playerRepository.save(player);
         }
 
-        invite.setStatus("USED");
-        teamInviteRepository.save(invite);
+        optInvite.ifPresent(inv -> {
+            inv.setStatus("USED");
+            teamInviteRepository.save(inv);
+        });
 
         return "Request submitted for " + targetTeam.getName() + ". Awaiting coach approval.";
     }

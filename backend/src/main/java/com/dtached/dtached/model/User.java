@@ -63,4 +63,7 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @Column(name = "user_tag", unique = true)
+    private String userTag;
 }

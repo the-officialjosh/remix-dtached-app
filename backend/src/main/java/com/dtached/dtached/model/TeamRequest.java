@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "team_requests")
@@ -18,10 +19,12 @@ public class TeamRequest {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
+    @JsonIgnoreProperties("players")
     private Team team;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_id", nullable = false)
+    @JsonIgnoreProperties("team")
     private Player player;
 
     @Column(nullable = false)
@@ -39,6 +42,7 @@ public class TeamRequest {
     /** The team the player is leaving (only for TRANSFER) */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_team_id")
+    @JsonIgnoreProperties("players")
     private Team fromTeam;
 
     @Column(name = "created_at", nullable = false, updatable = false)

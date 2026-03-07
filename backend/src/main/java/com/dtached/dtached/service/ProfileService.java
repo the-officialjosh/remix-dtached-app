@@ -82,6 +82,7 @@ public class ProfileService {
             if (request.getPosition() != null) player.setPosition(request.getPosition());
             if (request.getHeight() != null) player.setHeight(request.getHeight());
             if (request.getWeight() != null) player.setWeight(request.getWeight());
+            if (request.getPhotoUrl() != null) player.setPhotoUrl(request.getPhotoUrl());
             if (request.getCity() != null) player.setCity(request.getCity());
             if (request.getProvince() != null) player.setProvinceState(request.getProvince());
             if (request.getJerseyNumber() != null) player.setNumber(request.getJerseyNumber());

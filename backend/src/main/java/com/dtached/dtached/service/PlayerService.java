@@ -65,7 +65,7 @@ public class PlayerService {
                 .status("FREE_AGENT");
 
         // Auto-generate permanent player tag
-        String playerTag = "PLR-" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+        String playerTag = com.dtached.dtached.util.TagGenerator.generate();
         builder.playerTag(playerTag);
 
         Player player = playerRepository.save(builder.build());

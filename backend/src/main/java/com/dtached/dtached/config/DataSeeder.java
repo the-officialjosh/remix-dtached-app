@@ -78,25 +78,25 @@ public class DataSeeder implements CommandLineRunner {
 
         // --- Teams ---
         Team titans = teamRepository.save(Team.builder()
-                .name("Titans").type("7v7").division("Elite").status("APPROVED").inviteCode("TITAN2026")
+                .name("Titans").type("7v7").division("Elite").status("APPROVED").inviteCode("TITAN2026").teamTag("A1B2C3D4")
                 .city("Toronto").provinceState("ON")
                 .bio("The Titans are a premier 7v7 program focused on developing elite skill position players.")
                 .gp(5).wins(4).losses(1).ties(0).pts(8).pf(120).pa(85).pd(35).l5("W-W-L-W-W").build());
 
         Team warriors = teamRepository.save(Team.builder()
-                .name("Warriors").type("7v7").division("16U").status("APPROVED").inviteCode("WARR2026")
+                .name("Warriors").type("7v7").division("16U").status("APPROVED").inviteCode("WARR2026").teamTag("E5F6G7H8")
                 .city("Hamilton").provinceState("ON")
                 .bio("Building champions on and off the field through discipline and hard work.")
                 .gp(5).wins(3).losses(2).ties(0).pts(6).pf(110).pa(95).pd(15).l5("L-W-W-L-W").build());
 
         Team valkyries = teamRepository.save(Team.builder()
-                .name("Valkyries").type("Flag").division("Elite").status("APPROVED").inviteCode("VALK2026")
+                .name("Valkyries").type("Flag").division("Elite").status("APPROVED").inviteCode("VALK2026").teamTag("J9K8L7M6")
                 .city("Ottawa").provinceState("ON")
                 .bio("The Valkyries represent the next generation of female athletes in competitive flag football.")
                 .gp(4).wins(4).losses(0).ties(0).pts(8).pf(90).pa(20).pd(70).l5("W-W-W-W").build());
 
         Team sirens = teamRepository.save(Team.builder()
-                .name("Sirens").type("Flag").division("14U").status("APPROVED").inviteCode("SIRN2026")
+                .name("Sirens").type("Flag").division("14U").status("APPROVED").inviteCode("SIRN2026").teamTag("N5P4Q3R2")
                 .city("Toronto").provinceState("ON")
                 .bio("Fast, agile, and determined. The Sirens are making waves in the 14U division.")
                 .gp(4).wins(2).losses(2).ties(0).pts(4).pf(60).pa(65).pd(-5).l5("L-W-L-W").build());

@@ -44,7 +44,7 @@ public class TeamService {
                 .city(request.getCity())
                 .provinceState(request.getProvince())
                 .bio(request.getBio())
-                .teamTag(teamTag)
+                .teamTag(com.dtached.dtached.util.TagGenerator.generate())
                 .inviteCode(inviteCode)
                 .status("PENDING") // Needs admin approval
                 .build());

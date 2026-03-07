@@ -2,12 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   LayoutDashboard, Users, Ticket, UserPlus, CalendarCheck, Settings,
   Copy, RefreshCw, Lock, Unlock, Check, X, Shield, Edit3, Save,
-  MapPin, Trophy, AlertTriangle, ChevronRight, Hash, Clock
+  MapPin, Trophy, AlertTriangle, ChevronRight, Hash, Clock, Search, Heart, Camera
 } from 'lucide-react';
 import { API_URL as API } from '../../lib/api';
-import TeamRegistration from '../coach/TeamRegistration';
 
-type Tab = 'overview' | 'profile' | 'invite' | 'roster' | 'requests' | 'events' | 'settings';
+type Tab = 'overview' | 'profile' | 'invite' | 'roster' | 'requests' | 'events' | 'freeagents' | 'settings';
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -15,6 +14,7 @@ const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: 'invite', label: 'Invite Code', icon: Ticket },
   { key: 'roster', label: 'Roster', icon: Users },
   { key: 'requests', label: 'Join Requests', icon: UserPlus },
+  { key: 'freeagents', label: 'Free Agents', icon: Search },
   { key: 'events', label: 'Events', icon: CalendarCheck },
   { key: 'settings', label: 'Settings', icon: Settings },
 ];
@@ -121,6 +121,19 @@ export default function CoachDashboard({ onUpdate, players }: { onUpdate: () => 
     onUpdate();
   };
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setSaveMsg('Error: Image must be less than 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => setProfileForm(prev => ({ ...prev, logoUrl: reader.result as string }));
+      reader.readAsDataURL(file);
+    }
+  };
+
   const saveProfile = async () => {
     setSaveMsg('');
     // Currently the backend doesn't have a team update endpoint, so just show feedback
@@ -161,8 +174,15 @@ export default function CoachDashboard({ onUpdate, players }: { onUpdate: () => 
     }
     
     return (
-      <div className="max-w-xl mx-auto py-8">
-        <TeamRegistration onComplete={() => { loadTeam(); onUpdate(); }} />
+      <div className="max-w-xl mx-auto py-16 text-center space-y-4">
+        <Shield className="w-16 h-16 text-zinc-700 mx-auto" />
+        <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">No Team Assigned</h2>
+        <p className="text-zinc-400">
+          Your coach application has been approved, but no team has been provisioned for you yet. An administrator will create your team and assign you shortly.
+        </p>
+        <p className="text-sm text-zinc-500">
+          Once your team is set up, your full coaching dashboard will appear here.
+        </p>
       </div>
     );
   }
@@ -173,10 +193,38 @@ export default function CoachDashboard({ onUpdate, players }: { onUpdate: () => 
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-black text-white tracking-tighter italic uppercase">{team.name}</h2>
-          <div className="flex items-center gap-3 mt-1">
+          <div className="flex items-center gap-3 mt-2">
+            
+            {/* Team Tag Click-to-Copy */}
             {teamTag && (
-              <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">{teamTag}</span>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(teamTag);
+                  alert('Team Tag copied to clipboard: ' + teamTag);
+                }}
+                title="Click to copy Team Tag"
+                className="group flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <Hash className="w-3 h-3 text-blue-400" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider">{teamTag}</span>
+              </button>
             )}
+
+            {/* Coach Tag (userTag) Click-to-Copy */}
+            {user?.userTag && (
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(user.userTag!);
+                  alert('Coach Tag copied to clipboard: ' + user.userTag);
+                }}
+                title="Click to copy Coach Tag"
+                className="group flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <Hash className="w-3 h-3 text-yellow-500" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider">{user.userTag}</span>
+              </button>
+            )}
+
             <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
               teamStatus === 'APPROVED' ? 'bg-green-500/10 text-green-400 border border-green-500/20'
               : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
@@ -291,7 +339,43 @@ export default function CoachDashboard({ onUpdate, players }: { onUpdate: () => 
               )}
             </div>
 
-            {saveMsg && <p className="text-sm text-green-400">{saveMsg}</p>}
+            {saveMsg && <p className={`text-sm ${saveMsg.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{saveMsg}</p>}
+
+            {/* Logo Upload */}
+            <div className="flex items-center gap-6 mb-6">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-2xl bg-zinc-800 border-2 border-dashed border-zinc-700 flex items-center justify-center overflow-hidden">
+                  {profileForm.logoUrl ? (
+                    <img src={profileForm.logoUrl} alt="Team Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center text-zinc-600">
+                      <Shield className="w-8 h-8 text-yellow-500/40" />
+                    </div>
+                  )}
+                </div>
+                {editing && (
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <Camera className="w-6 h-6 text-white" />
+                    </div>
+                  </>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white uppercase tracking-widest">Team Logo</p>
+                {editing ? (
+                  <p className="text-xs text-zinc-500 mt-1">Click image to upload (max 5MB)</p>
+                ) : (
+                  <p className="text-xs text-zinc-500 mt-1">Click Edit to change logo</p>
+                )}
+              </div>
+            </div>
 
             <div className="space-y-4">
               <ProfileField label="Team Name" value={profileForm.name} editing={editing}
@@ -480,6 +564,11 @@ export default function CoachDashboard({ onUpdate, players }: { onUpdate: () => 
           </div>
         )}
 
+        {/* ═══════════ FREE AGENTS ═══════════ */}
+        {tab === 'freeagents' && (
+          <FreeAgentSearch teamId={team.id} token={token!} />
+        )}
+
         {/* ═══════════ EVENTS ═══════════ */}
         {tab === 'events' && (
           <div className="space-y-6">
@@ -654,3 +743,100 @@ function ProfileField({ label, value, editing, onChange, multiline }: {
     </div>
   );
 }
+
+function FreeAgentSearch({ teamId, token }: { teamId: number; token: string }) {
+  const [agents, setAgents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+  const [interestSent, setInterestSent] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    fetch(`${API}/players/free-agents`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : [])
+      .then(setAgents)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const expressInterest = async (playerId: number) => {
+    try {
+      const res = await fetch(`${API}/interests/team/${teamId}/player/${playerId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setInterestSent(prev => new Set(prev).add(playerId));
+      }
+    } catch { /* silently handle */ }
+  };
+
+  const filtered = filter
+    ? agents.filter(a => (a.position || '').toLowerCase().includes(filter.toLowerCase()) ||
+        (a.name || `${a.firstName} ${a.lastName}`).toLowerCase().includes(filter.toLowerCase()))
+    : agents;
+
+  if (loading) return <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Free Agent Market</h3>
+        <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{agents.length} Available</span>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+        <input
+          placeholder="Search by name or position..."
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+          className="w-full pl-11 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white placeholder:text-zinc-600 focus:border-yellow-500/50 outline-none transition-colors"
+        />
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-12">
+          <Users className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+          <p className="text-zinc-500 text-sm">{agents.length === 0 ? 'No free agents available right now.' : 'No matches for your search.'}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((agent: any) => {
+            const name = agent.name || `${agent.firstName || agent.first_name || ''} ${agent.lastName || agent.last_name || ''}`.trim();
+            const sent = interestSent.has(agent.id);
+            return (
+              <div key={agent.id} className="flex items-center justify-between bg-zinc-800/50 border border-zinc-800 px-5 py-4 rounded-xl group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+                    {agent.position || '?'}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{name}</p>
+                    <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+                      {agent.city && <span>{agent.city}</span>}
+                      {agent.height && <span>• {agent.height}</span>}
+                      {agent.weight && <span>• {agent.weight}</span>}
+                    </div>
+                  </div>
+                </div>
+                {sent ? (
+                  <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase rounded-full border border-green-500/20">
+                    <Heart className="w-3 h-3" /> Interest Sent
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => expressInterest(agent.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase rounded-full hover:bg-yellow-500/20 transition-all border border-yellow-500/20"
+                  >
+                    <Heart className="w-3.5 h-3.5" /> Express Interest
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+

@@ -47,6 +47,7 @@ public class AuthService {
                 .emailConfirmed(false)
                 .confirmationToken(confirmToken)
                 .confirmationExpiresAt(LocalDateTime.now().plusHours(24))
+                .userTag(com.dtached.dtached.util.TagGenerator.generate())
                 .build();
 
         user = userRepository.save(user);
@@ -225,7 +226,9 @@ public class AuthService {
                 .role(user.getRole() != null ? user.getRole().name() : null)
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
+                .photoUrl(user.getPhotoUrl())
                 .userId(user.getId())
+                .userTag(user.getUserTag())
                 .emailConfirmed(Boolean.TRUE.equals(user.getEmailConfirmed()))
                 .needsRole(user.getRole() == null)
                 .mustResetPassword(Boolean.TRUE.equals(user.getMustResetPassword()))

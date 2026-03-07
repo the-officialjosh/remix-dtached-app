@@ -1,5 +1,4 @@
 import type { Player, TeamStandings, Game } from '../types';
-import { seedPlayers, seedTeams, seedGames } from '../data/seedData';
 
 export const API_URL = '/api';
 
@@ -21,13 +20,7 @@ export async function fetchTournamentData(tournamentType: '7v7' | 'Flag') {
     return { players, games, teams };
   } catch (err) {
     console.error("Fetch error:", err);
-    // Use fallback seed data when API is unavailable (e.g. static hosting)
-    const filteredPlayers = seedPlayers.filter(p => {
-      const team = seedTeams.find(t => t.name === p.team_name);
-      return team ? team.type === tournamentType : true;
-    });
-    const filteredTeams = seedTeams.filter(t => t.type === tournamentType);
-    const filteredGames = seedGames.filter(g => g.type === tournamentType);
-    return { players: filteredPlayers, games: filteredGames, teams: filteredTeams };
+    return { players: [] as Player[], games: [] as Game[], teams: [] as TeamStandings[] };
   }
 }
+

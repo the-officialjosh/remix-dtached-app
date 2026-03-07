@@ -28,9 +28,9 @@ export default function MobileNav({ activeTab, setActiveTab }: MobileNavProps) {
     { id: 'media', icon: ImageIcon },
     { id: 'live', icon: Play },
     { id: 'register', icon: Plus },
-    // Profile/login as last item
+    // login as last item
     ...(isAuthenticated
-      ? [{ id: 'profile', icon: UserCircle }]
+      ? []
       : [{ id: 'login', icon: LogIn }]),
   ];
 

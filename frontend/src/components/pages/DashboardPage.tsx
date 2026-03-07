@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import PlayerDashboard from './PlayerDashboard';
 import AdminPage from './AdminPage';
-import CoachDashboard from '../admin/CoachDashboard';
+import CoachDashboardRefactored from '../coach/CoachDashboardRefactored';
 import type { Player, TeamStandings, Game } from '../../types';
 import { fetchTournamentData } from '../../lib/api';
 
@@ -112,7 +112,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
       {/* Coach gets focused team dashboard */}
       {isCoach && !isAdmin && (
         <div className="mt-4">
-          <CoachDashboard onUpdate={loadData} />
+          <CoachDashboardRefactored onUpdate={loadData} />
         </div>
       )}
 

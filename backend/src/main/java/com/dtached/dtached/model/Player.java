@@ -2,6 +2,7 @@ package com.dtached.dtached.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "players")
@@ -20,6 +21,7 @@ public class Player {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
+    @JsonIgnoreProperties({"players", "staff"})
     private Team team;
 
     @Column(name = "first_name", nullable = false)

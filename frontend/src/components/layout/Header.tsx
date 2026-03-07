@@ -113,10 +113,14 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
                 className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-full hover:border-zinc-600 transition-all"
               >
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center">
-                  <span className="text-xs font-black text-yellow-500">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </span>
+                <div className="w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center overflow-hidden">
+                  {user?.photoUrl ? (
+                    <img src={user.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-black text-yellow-500">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </span>
+                  )}
                 </div>
                 <div className="hidden sm:flex flex-col items-start">
                   <span className="text-xs font-bold text-white leading-tight">{user?.firstName}</span>
@@ -145,13 +149,6 @@ export default function Header({ activeTab, setActiveTab, tournamentType, setTou
                     >
                       <LayoutDashboard className="w-4 h-4 text-zinc-500" />
                       Dashboard
-                    </button>
-                    <button
-                      onClick={() => handleDropdownNav('profile')}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all"
-                    >
-                      <UserCircle className="w-4 h-4 text-zinc-500" />
-                      My Profile
                     </button>
                   </div>
 

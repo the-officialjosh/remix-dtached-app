@@ -63,7 +63,7 @@ public class TeamOnboardingService {
                 .city(dto.getCity())
                 .provinceState(dto.getProvinceState())
                 .bio(dto.getBio())
-                .teamTag(teamTag)
+                .teamTag(com.dtached.dtached.util.TagGenerator.generate())
                 .inviteCode(inviteCode)
                 .status("APPROVED")
                 .build());

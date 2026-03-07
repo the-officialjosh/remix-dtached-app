@@ -47,13 +47,20 @@ const TeamManagement = ({ teams, onUpdate }: { teams: TeamStandings[]; onUpdate:
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`${API}/admin/games`, {
-      method: 'POST',
-      headers: authHeaders,
-      body: JSON.stringify(editingTeam)
-    });
+    if (editingTeam?.id) {
+      // Update existing team
+      await fetch(`${API}/admin/teams/${editingTeam.id}`, {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify(editingTeam)
+      });
+    }
     setEditingTeam(null);
     onUpdate();
+    // Refresh admin teams
+    fetch(`${API}/admin/teams`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.ok ? res.json() : [])
+      .then(setAdminTeams);
   };
 
   const statusIcon = (status: string) => {

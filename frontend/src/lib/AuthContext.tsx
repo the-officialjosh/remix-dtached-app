@@ -6,6 +6,8 @@ interface User {
   role: string | null;
   firstName: string;
   lastName: string;
+  photoUrl?: string;
+  userTag?: string | null;
   emailConfirmed: boolean;
   needsRole: boolean;
 }
@@ -20,6 +22,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   selectRole: (role: string) => Promise<void>;
   resendConfirmation: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -40,6 +43,8 @@ function parseUser(data: any): User {
     role: data.role ?? null,
     firstName: data.first_name ?? data.firstName,
     lastName: data.last_name ?? data.lastName,
+    photoUrl: data.photo_url ?? data.photoUrl ?? data.photo_url,
+    userTag: data.user_tag ?? data.userTag ?? null,
     emailConfirmed: data.email_confirmed ?? data.emailConfirmed ?? false,
     needsRole: data.needs_role ?? data.needsRole ?? false,
   };
@@ -56,28 +61,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('dtached_token');
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        throw new Error('Token expired');
+      }
+      if (!res.ok) throw new Error('Failed to load user');
+      const data = await res.json();
+      setUser(parseUser(data));
+    } catch (err) {
+      logout();
+    }
+  }, [token, logout]);
+
   // Load user from token on mount
   useEffect(() => {
     if (!token) {
       setLoading(false);
       return;
     }
-
-    fetch('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (res.status === 401 || res.status === 403) {
-          logout();
-          throw new Error('Token expired');
-        }
-        if (!res.ok) throw new Error('Failed to load user');
-        return res.json();
-      })
-      .then((data) => setUser(parseUser(data)))
-      .catch(() => logout())
-      .finally(() => setLoading(false));
-  }, [token, logout]);
+    refreshUser().finally(() => setLoading(false));
+  }, [token, refreshUser]);
 
   const login = async (email: string, password: string) => {
     const res = await fetch('/api/auth/login', {
@@ -172,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         selectRole,
         resendConfirmation,
+        refreshUser,
         logout,
         loading,
       }}

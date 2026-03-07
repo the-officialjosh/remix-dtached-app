@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Player, TeamStandings, Game } from './types';
 import { fetchTournamentData } from './lib/api';
-import { useWebSocket } from './hooks/useWebSocket';
 
 // --- Auth ---
 import { AuthProvider, useAuth } from './lib/AuthContext';
@@ -124,14 +123,7 @@ function AppContent() {
     }, 5000);
   };
 
-  const handleWebSocketMessage = useCallback((message: any) => {
-    if (message.type === 'STATS_UPDATED') {
-      loadData();
-      addNotification(`Stats updated for ${message.data.name}!`);
-    }
-  }, [loadData]);
 
-  useWebSocket(handleWebSocketMessage);
 
   if (loading) return (
     <div className="min-h-screen bg-black flex items-center justify-center">
@@ -186,12 +178,6 @@ function AppContent() {
               {activeTab === 'dashboard' && (
                 <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                   <DashboardPage onNavigate={(tab) => setActiveTab(tab)} />
-                </motion.div>
-              )}
-
-              {activeTab === 'profile' && (
-                <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                  <ProfilePage />
                 </motion.div>
               )}
 

@@ -8,15 +8,15 @@ export default function TransferQueue() {
   const token = localStorage.getItem('dtached_token');
 
   useEffect(() => {
-    fetch(`${API}/admin/transfers`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API}/admin/requests`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : [])
-      .then(setTransfers)
+      .then((all: any[]) => setTransfers(all.filter((r: any) => (r.requestType || r.request_type) === 'TRANSFER')))
       .catch(() => setTransfers([]))
       .finally(() => setLoading(false));
   }, [token]);
 
   const handleTransfer = async (id: number, action: 'approve' | 'reject') => {
-    await fetch(`${API}/admin/transfers/${id}/${action}`, {
+    await fetch(`${API}/admin/requests/${id}/${action}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     });
